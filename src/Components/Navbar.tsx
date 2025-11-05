@@ -73,7 +73,7 @@ const Navbar = () => {
               {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </button>
 
-            <button className="hidden md:block relative group">
+            <button className="hidden md:block relative group cursor-pointer">
               <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-green-600 rounded-xl blur opacity-50 group-hover:opacity-75 transition-opacity" />
               <div className="relative bg-gradient-to-r from-blue-600 to-green-600 text-white px-6 py-2.5 rounded-xl font-semibold hover:shadow-xl hover:scale-105 transition-all duration-300">
                 Get Started

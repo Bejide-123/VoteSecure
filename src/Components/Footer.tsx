@@ -209,7 +209,7 @@ const Footer: React.FC = () => {
                           <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                         </span>
                       ) : (
-                        <span className="flex items-center gap-2">
+                        <span className="flex items-center gap-2 cursor-pointer">
                           <Send className="w-5 h-5" />
                           <span className="hidden sm:inline">Subscribe</span>
                         </span>

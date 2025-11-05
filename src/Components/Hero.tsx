@@ -102,7 +102,7 @@ const HeroSection = () => {
             className="flex flex-col sm:flex-row gap-4 justify-center"
           >
             <button
-              className="
+              className=" cursor-pointer
                 group bg-gradient-to-r from-blue-600 to-green-600 
                 text-white px-8 py-4 rounded-xl font-bold text-lg 
                 hover:shadow-xl hover:scale-105 

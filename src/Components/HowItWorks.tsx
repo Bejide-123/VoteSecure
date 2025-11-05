@@ -151,7 +151,7 @@ const HowItWorksSection = () => {
                 {/* Buttons */}
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
                   <button
-                    className="
+                    className=" cursor-pointer
               bg-white text-blue-600 px-8 py-4 rounded-xl font-bold text-lg
               hover:shadow-[0_8px_25px_rgba(255,255,255,0.2)] hover:scale-105
               transition-all duration-200
