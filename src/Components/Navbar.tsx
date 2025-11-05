@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Vote, Menu, X, Moon, Sun } from "lucide-react";
 
 const Navbar = () => {
@@ -36,7 +36,7 @@ const Navbar = () => {
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center gap-3 group cursor-pointer">
             <div className="relative">
-              <div className="absolute inset-0 bg-gra-to-br from-blue-600 to-green-600 rounded-xl blur opacity-50 group-hover:opacity-75 transition-opacity" />
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-green-600 rounded-xl blur opacity-50 group-hover:opacity-75 transition-opacity" />
               <div className="relative bg-gradient-to-br from-blue-600 to-green-600 p-2.5 rounded-xl group-hover:scale-110 transition-transform duration-300">
                 <Vote className="w-6 h-6 text-white" />
               </div>
