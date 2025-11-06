@@ -135,7 +135,7 @@ const HeroSection: React.FC = () => {
                 <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-600 to-green-600 rounded-xl blur opacity-40 group-hover:opacity-70 transition duration-300" />
                 
                 {/* Button */}
-                <div className="relative bg-gradient-to-r from-blue-600 to-green-600 text-white px-8 py-4 rounded-xl font-bold text-lg hover:shadow-2xl hover:scale-105 active:scale-100 transition-all duration-200 flex items-center justify-center gap-2">
+                <div className="relative bg-gradient-to-r from-blue-600 to-green-600  text-white px-8 py-4 rounded-xl font-bold text-lg hover:shadow-2xl hover:scale-105 active:scale-100 transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer animate-gradient">
                   Schedule a Demo
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </div>
