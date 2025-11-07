@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
 import { Vote, Menu, X, Moon, Sun } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const Navbar = () => {
+  const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem("theme") === "dark");
   const [isScrolled, setIsScrolled] = useState(false);
@@ -41,7 +43,7 @@ const Navbar = () => {
                 <Vote className="w-6 h-6 text-white" />
               </div>
             </div>
-            <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent group-hover:from-blue-500 group-hover:to-green-500 transition-all duration-300">
+            <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent group-hover:from-blue-500 group-hover:to-green-500 transition-all duration-300 animate-gradient">
               VoteSecure
             </span>
           </div>
@@ -73,7 +75,7 @@ const Navbar = () => {
               {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </button>
 
-            <button className="hidden md:block relative group cursor-pointer">
+            <button onClick={() => navigate("/login")} className="hidden md:block relative group cursor-pointer">
               <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-green-600 rounded-xl blur opacity-50 group-hover:opacity-75 transition-opacity" />
               <div className="relative bg-gradient-to-r from-blue-600 to-green-600 text-white px-6 py-2.5 rounded-xl font-semibold hover:shadow-xl hover:scale-105 transition-all duration-300">
                 Get Started
@@ -111,9 +113,9 @@ const Navbar = () => {
                 {link.name}
               </a>
             ))}
-            <button className="w-full mt-3 relative group">
+            <button onClick={() => navigate("/login")} className="w-full mt-3 relative group">
               <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-green-600 rounded-xl blur opacity-50 group-hover:opacity-75 transition-opacity" />
-              <div className="relative bg-gradient-to-r from-blue-600 to-green-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-xl transition-all duration-300">
+              <div className="relative bg-gradient-to-r from-blue-600 to-green-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-xl transition-all duration-300 animate-gradient">
                 Get Started
               </div>
             </button>

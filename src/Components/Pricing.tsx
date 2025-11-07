@@ -123,7 +123,7 @@ const PricingSection: React.FC = () => {
             <span className="text-gray-900 dark:text-white">
               Simple Pricing.
             </span>{" "}
-            <span className="bg-gradient-to-r from-purple-600 via-blue-600 to-green-600 dark:from-purple-400 dark:via-blue-400 dark:to-green-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-purple-600 via-blue-600 to-green-600 dark:from-purple-400 dark:via-blue-400 dark:to-green-400 bg-clip-text text-transparent animate-gradient">
               No Hidden Fees.
             </span>
           </h2>
@@ -310,7 +310,7 @@ const PricingSection: React.FC = () => {
               Our team can help you choose the perfect plan for your organization's needs.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button className="group bg-gradient-to-r from-blue-600 to-green-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-xl hover:scale-105 transition-all duration-200 flex items-center justify-center gap-2">
+              <button className="group bg-gradient-to-r from-blue-600 to-green-600 text-white px-6 py-3 cursor-pointer rounded-xl font-semibold hover:shadow-xl hover:scale-105 transition-all duration-200 flex items-center justify-center gap-2">
                 Schedule a Call
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </button>

@@ -100,7 +100,7 @@ const FeaturesSection: React.FC = () => {
               Powered by AI. Built for
             </span>
             <br />
-            <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-green-600 dark:from-blue-400 dark:via-purple-400 dark:to-green-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-green-600 dark:from-blue-400 dark:via-purple-400 dark:to-green-400 bg-clip-text text-transparent animate-gradient">
               Transparency.
             </span>
           </h2>
@@ -162,7 +162,7 @@ const FeaturesSection: React.FC = () => {
                 <div className={`
                   flex items-center gap-2 text-sm font-semibold text-blue-600 dark:text-blue-400
                   opacity-0 group-hover:opacity-100 transition-all duration-300
-                  ${hoveredIndex === index ? 'translate-x-0' : '-translate-x-2'}
+                  ${hoveredIndex === index ? 'translate-x-0 cursor-pointer' : '-translate-x-2'}
                 `}>
                   <span>Learn more</span>
                   <ArrowRight className="w-4 h-4" />
@@ -191,7 +191,7 @@ const FeaturesSection: React.FC = () => {
                 </div>
               </div>
             </div>
-            <button className="group bg-gradient-to-r from-blue-600 to-green-600 text-white px-6 py-3 rounded-xl font-bold hover:shadow-xl hover:scale-105 transition-all duration-200 flex items-center gap-2 whitespace-nowrap">
+            <button className="group bg-gradient-to-r from-blue-600 to-green-600 text-white px-6 py-3 rounded-xl font-bold hover:shadow-xl hover:scale-105 transition-all duration-200 flex items-center gap-2 whitespace-nowrap cursor-pointer animate-gradient">
               Schedule Demo
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </button>

@@ -127,7 +127,7 @@ const Footer: React.FC = () => {
                     <Vote className="w-7 h-7 text-white" />
                   </div>
                 </div>
-                <span className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
+                <span className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent animate-gradient">
                   VoteSecure
                 </span>
               </div>
@@ -281,7 +281,7 @@ const Footer: React.FC = () => {
                 </span>
                 . All rights reserved.
               </p>
-              <p className="text-xs text-gray-500 dark:text-gray-600 mt-1">
+              <p className="text-xs text-gray-500 dark:text-gray-200 mt-1">
                 Built with 💚 in Nigeria for Nigeria
               </p>
             </div>
@@ -290,20 +290,20 @@ const Footer: React.FC = () => {
 
         {/* ===== TRUST BADGES ===== */}
         <div className="pb-8 pt-6 border-t border-gray-200 dark:border-gray-800">
-          <div className="flex flex-wrap justify-center items-center gap-8 opacity-60 dark:opacity-50">
-            <div className="text-xs text-gray-500 dark:text-gray-600 flex items-center gap-2">
+          <div className="flex flex-wrap justify-center items-center gap-8 opacity-60 dark:opacity-50 ">
+            <div className="text-xs text-gray-500 dark:text-white flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4" />
               <span>NDPR Compliant</span>
             </div>
-            <div className="text-xs text-gray-500 dark:text-gray-600 flex items-center gap-2">
+            <div className="text-xs text-gray-500 dark:text-white flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4" />
               <span>ISO 27001 Certified</span>
             </div>
-            <div className="text-xs text-gray-500 dark:text-gray-600 flex items-center gap-2">
+            <div className="text-xs text-gray-500 dark:text-white flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4" />
               <span>256-bit Encryption</span>
             </div>
-            <div className="text-xs text-gray-500 dark:text-gray-600 flex items-center gap-2">
+            <div className="text-xs text-gray-500 dark:text-white flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4" />
               <span>99.9% Uptime SLA</span>
             </div>

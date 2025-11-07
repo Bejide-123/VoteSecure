@@ -91,7 +91,7 @@ const HowItWorksSection: React.FC = () => {
             <span className="text-gray-900 dark:text-white">
               How It
             </span>{" "}
-            <span className="bg-gradient-to-r from-blue-600 via-green-600 to-purple-600 dark:from-blue-400 dark:via-green-400 dark:to-purple-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-blue-600 via-green-600 to-purple-600 dark:from-blue-400 dark:via-green-400 dark:to-purple-400 bg-clip-text text-transparent animate-gradient">
               Works
             </span>
           </h2>
@@ -258,7 +258,7 @@ const HowItWorksSection: React.FC = () => {
 
               {/* Buttons */}
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <button className="group relative">
+                <button className="group relative cursor-pointer">
                   <div className="absolute -inset-0.5 bg-white rounded-xl blur opacity-50 group-hover:opacity-75 transition-opacity" />
                   <div className="relative bg-white text-blue-600 px-8 py-4 rounded-xl font-bold text-lg hover:shadow-2xl hover:scale-105 transition-all duration-200 flex items-center justify-center gap-2">
                     Schedule Demo
