@@ -103,6 +103,37 @@ const RegistrationPage: React.FC = () => {
                 <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Personal Information</h3>
                 
                 <div>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Account Type *</label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => handleChange({ target: { name: 'userType', value: 'voter' } } as any)}
+                      className={`p-4 rounded-xl border-2 transition-all ${
+                        formData.userType === 'voter'
+                          ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/30'
+                          : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
+                      }`}
+                    >
+                      <div className="font-bold text-gray-900 dark:text-white">Voter</div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">Cast votes</div>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleChange({ target: { name: 'userType', value: 'admin' } } as any)}
+                      className={`p-4 rounded-xl border-2 transition-all ${
+                        formData.userType === 'admin'
+                          ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/30'
+                          : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
+                      }`}
+                    >
+                      <div className="font-bold text-gray-900 dark:text-white">Admin</div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">Manage elections</div>
+                    </button>
+                  </div>
+                  {errors.userType && <p className="mt-2 text-sm text-red-600 dark:text-red-400 flex items-center gap-1"><AlertCircle className="w-4 h-4" />{errors.userType}</p>}
+                </div>
+                
+                <div>
                   <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Full Name *</label>
                   <div className="relative">
                     <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -127,15 +158,15 @@ const RegistrationPage: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Student ID *</label>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Member/Staff ID *</label>
                   <div className="relative">
                     <Hash className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                    <input type="text" name="studentId" value={formData.studentId} onChange={handleChange} placeholder="2020/12345"
+                    <input type="text" name="memberId" value={formData.memberId} onChange={handleChange} placeholder="2020/12345"
                       className={`w-full pl-12 pr-4 py-3 rounded-xl border bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 ${
-                        errors.studentId ? 'border-red-300 focus:ring-red-500' : 'border-gray-200 dark:border-gray-700 focus:ring-blue-500'
+                        errors.memberId ? 'border-red-300 focus:ring-red-500' : 'border-gray-200 dark:border-gray-700 focus:ring-blue-500'
                       }`} />
                   </div>
-                  {errors.studentId && <p className="mt-2 text-sm text-red-600 dark:text-red-400 flex items-center gap-1"><AlertCircle className="w-4 h-4" />{errors.studentId}</p>}
+                  {errors.memberId && <p className="mt-2 text-sm text-red-600 dark:text-red-400 flex items-center gap-1"><AlertCircle className="w-4 h-4" />{errors.memberId}</p>}
                 </div>
 
                 <button onClick={() => validateStep(1) && setCurrentStep(2)} className="group relative w-full mt-6">
@@ -149,22 +180,22 @@ const RegistrationPage: React.FC = () => {
 
             {currentStep === 2 && (
               <div className="space-y-5">
-                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">School Information</h3>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Organization Information</h3>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">School *</label>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Organization *</label>
                   <div className="relative">
                     <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                    <input type="text" name="school" value={formData.school} onChange={handleChange} placeholder="University of Lagos"
+                    <input type="text" name="organization" value={formData.organization} onChange={handleChange} placeholder="University of Lagos"
                       className={`w-full pl-12 pr-4 py-3 rounded-xl border bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 ${
-                        errors.school ? 'border-red-300 focus:ring-red-500' : 'border-gray-200 dark:border-gray-700 focus:ring-blue-500'
+                        errors.organization ? 'border-red-300 focus:ring-red-500' : 'border-gray-200 dark:border-gray-700 focus:ring-blue-500'
                       }`} />
                   </div>
-                  {errors.school && <p className="mt-2 text-sm text-red-600 dark:text-red-400 flex items-center gap-1"><AlertCircle className="w-4 h-4" />{errors.school}</p>}
+                  {errors.organization && <p className="mt-2 text-sm text-red-600 dark:text-red-400 flex items-center gap-1"><AlertCircle className="w-4 h-4" />{errors.organization}</p>}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Department *</label>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Department</label>
                   <div className="relative">
                     <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                     <input type="text" name="department" value={formData.department} onChange={handleChange} placeholder="Computer Science"
@@ -174,6 +205,20 @@ const RegistrationPage: React.FC = () => {
                   </div>
                   {errors.department && <p className="mt-2 text-sm text-red-600 dark:text-red-400 flex items-center gap-1"><AlertCircle className="w-4 h-4" />{errors.department}</p>}
                 </div>
+
+                {formData.userType === 'admin' && (
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Position/Role *</label>
+                    <div className="relative">
+                      <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                      <input type="text" name="position" value={formData.position} onChange={handleChange} placeholder="Electoral Officer"
+                        className={`w-full pl-12 pr-4 py-3 rounded-xl border bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 ${
+                          errors.position ? 'border-red-300 focus:ring-red-500' : 'border-gray-200 dark:border-gray-700 focus:ring-blue-500'
+                        }`} />
+                    </div>
+                    {errors.position && <p className="mt-2 text-sm text-red-600 dark:text-red-400 flex items-center gap-1"><AlertCircle className="w-4 h-4" />{errors.position}</p>}
+                  </div>
+                )}
 
                 <div className="flex gap-3 mt-6">
                   <button onClick={() => setCurrentStep(1)} className="flex-1 border-2 border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 py-3 rounded-xl font-bold hover:border-blue-500 transition">Back</button>
