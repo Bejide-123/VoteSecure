@@ -1,5 +1,7 @@
 import { useState, createContext, useContext, useRef } from "react";
 import type { ReactNode } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "./AuthContext";
 
 interface RegistrationFormData {
   userType: 'voter' | 'admin';  // ✅ NEW: User type selection
@@ -78,6 +80,8 @@ interface RegisterProviderProps {
 const RegisterContext = createContext<RegisterContextType | undefined>(undefined);
 
 export const RegisterProvider = ({ children }: RegisterProviderProps) => {
+  const { register } = useAuth();
+  const navigate = useNavigate()
   const [formData, setFormData] = useState<RegistrationFormData>({
     userType: 'voter',  // ✅ NEW: Default to voter
     fullName: '',
@@ -233,14 +237,23 @@ export const RegisterProvider = ({ children }: RegisterProviderProps) => {
     try {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      console.log('Registration Data:', {
-        ...formData,
-        selfieImage: selfieImage ? 'Image uploaded' : 'No image'
-      });
-      
-      alert(`✅ ${formData.userType === 'admin' ? 'Admin' : 'Voter'} registration successful! Check your email.`);
-      setSuccessMessage('Registration successful! Check your email.');
+
+      // Call AuthContext.register (backend handling) - do not auto-login by default
+  const res = await register(formData, selfieImage ?? undefined, false);
+
+      if (res.ok) {
+        console.log('Registration Data:', {
+          ...formData,
+          selfieImage: selfieImage ? 'Image uploaded' : 'No image'
+        });
+        setSuccessMessage('Registration successful! Check your email.');
+        alert(`✅ ${formData.userType === 'admin' ? 'Admin' : 'Voter'} registration successful! Check your email.`);
+        setTimeout(() => {
+          navigate('/login');
+        }, 1500);
+      } else {
+        setErrors({ general: res.message || 'Registration failed. Please try again.' });
+      }
     } catch (error) {
       setErrors({ general: 'Registration failed. Please try again.' });
     } finally {

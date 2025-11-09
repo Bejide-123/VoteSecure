@@ -1,5 +1,7 @@
 import { useState, createContext, useContext } from "react";
 import type { ReactNode } from "react";
+import { useAuth } from "./AuthContext";
+import { useNavigate } from "react-router-dom";
 
 interface LoginFormData {
   email: string;
@@ -32,6 +34,8 @@ interface LoginProviderProps {
 const LoginContext = createContext<LoginContextType | undefined>(undefined);
 
 export const LoginProvider = ({ children }: LoginProviderProps) => {
+  const navigate = useNavigate();
+  const { loginWithCredentials } = useAuth();
   const [formData, setFormData] = useState<LoginFormData>({
     email: "",
     password: "",
@@ -92,31 +96,26 @@ export const LoginProvider = ({ children }: LoginProviderProps) => {
     setErrors({});
 
     try {
-      // ===== FIREBASE LOGIN WILL GO HERE =====
-      // For now, we'll simulate an API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      // Use AuthContext to perform credential login
+      const res = await loginWithCredentials(formData.email, formData.password);
 
-      // Simulate checking credentials
-      if (
-        formData.email === "demo@votesecure.com" &&
-        formData.password === "demo123"
-      ) {
+      if (res.ok) {
         setSuccessMessage("Login successful! Redirecting...");
+        setFormData({ email: "", password: "", rememberMe: false });
 
-        // In real app, redirect to dashboard:
-        // navigate('/dashboard');
+        // Redirect based on user type returned by AuthContext
+        const userType = res.user?.userType;
 
         setTimeout(() => {
-          alert("You would be redirected to dashboard now!");
-        }, 1000);
-
-        
-        setFormData({ email: "", password: "", rememberMe: false })
+          if (userType === "admin") {
+            navigate("/admin/dashboard");
+          } else {
+            // default voter/dashboard route
+            navigate("/dashboard");
+          }
+        }, 800);
       } else {
-        setErrors({
-          general:
-            "Invalid email or password. Try: demo@votesecure.com / demo123",
-        });
+        setErrors({ general: res.message || 'Invalid email or password' });
       }
     } catch (error) {
       setErrors({
