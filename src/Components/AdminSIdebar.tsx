@@ -203,6 +203,16 @@ const AdminSidebar: React.FC = () => {
     }
   };
 
+  // Notify layout about sidebar open/close so main content can respond
+  React.useEffect(() => {
+    try {
+      const ev = new CustomEvent('sidebar:change', { detail: { open: isSidebarOpen } });
+      window.dispatchEvent(ev);
+    } catch (err) {
+      // ignore in environments that don't support CustomEvent
+    }
+  }, [isSidebarOpen]);
+
   return (
     <>
       {/* ===== MOBILE MENU BUTTON (Only show when sidebar is closed on mobile) ===== */}
