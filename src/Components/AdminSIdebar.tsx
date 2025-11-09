@@ -241,10 +241,16 @@ const AdminSidebar: React.FC = () => {
           <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-800">
             {isSidebarOpen ? (
               <div className="flex items-center gap-3">
-                <div className="relative">
+                  <div className="relative">
                   <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-green-600 rounded-lg blur opacity-50" />
                   <div className="relative bg-gradient-to-br from-blue-600 to-green-600 p-2 rounded-lg">
-                    <Vote className="w-5 h-5 text-white" />
+                    <Vote
+                      onClick={() => {
+                        console.log("Clicked");
+                        setIsSidebarOpen(true);
+                      }}
+                      className="w-5 h-5 text-white"
+                    />
                   </div>
                 </div>
                 <div>
@@ -257,7 +263,10 @@ const AdminSidebar: React.FC = () => {
                 </div>
               </div>
             ) : (
-              <div className="relative mx-auto">
+              <div
+                onClick={() => setIsSidebarOpen(true)}
+                className="relative mx-auto cursor-pointer"
+              >
                 <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-green-600 rounded-lg blur opacity-50" />
                 <div className="relative bg-gradient-to-br from-blue-600 to-green-600 p-2 rounded-lg">
                   <Vote className="w-5 h-5 text-white" />
