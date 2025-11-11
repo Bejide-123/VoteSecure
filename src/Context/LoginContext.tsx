@@ -111,9 +111,9 @@ export const LoginProvider = ({ children }: LoginProviderProps) => {
             navigate("/admin/dashboard");
           } else {
             // default voter/dashboard route
-            navigate("/dashboard");
+            navigate("/voter/dashboard");
           }
-        }, 800);
+        }, 100);
       } else {
         setErrors({ general: res.message || 'Invalid email or password' });
       }

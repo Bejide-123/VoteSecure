@@ -8,6 +8,7 @@ import {
   AlertCircle,
   Calendar,
   BarChart3,
+  ArrowRight,
   ArrowUpRight,
   ArrowDownRight
 } from 'lucide-react';
@@ -111,14 +112,36 @@ const AdminDashboard: React.FC = () => {
   return (
     <div className="space-y-8">
       
-      {/* ===== WELCOME SECTION ===== */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-          Welcome back, {user?.fullName.split(' ')[0]}! 👋
-        </h1>
-        <p className="text-gray-600 dark:text-gray-400">
-          Here's what's happening with your elections today.
-        </p>
+      {/* ===== WELCOME SECTION (styled like voter hero) ===== */}
+      <div className="relative overflow-hidden">
+  <div className="absolute inset-0 bg-linear-to-br from-blue-50 to-green-50 dark:from-blue-950/20 dark:to-green-950/20 rounded-2xl" />
+  <div className="absolute top-0 right-0 w-64 h-64 bg-linear-to-br from-blue-400 to-green-400 rounded-full blur-3xl opacity-10" />
+
+        <div className="relative p-8 rounded-2xl border border-blue-200 dark:border-blue-800">
+          <div className="flex items-start justify-between flex-wrap gap-4">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                Welcome back, {user?.fullName.split(' ')[0]}! 👋
+              </h1>
+              <p className="text-gray-600 dark:text-gray-400 mb-4">
+                Manage elections, approvals and analytics from your admin console.
+              </p>
+              <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                <Calendar className="w-4 h-4" />
+                <span>Member since {new Date(user?.createdAt || new Date()).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
+              </div>
+            </div>
+
+            <button className="group relative">
+              <div className="absolute -inset-0.5 bg-linear-to-r from-blue-600 to-green-600 rounded-xl blur opacity-40 group-hover:opacity-70 transition" />
+              <div className="relative bg-linear-to-r from-blue-600 to-green-600 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 hover:shadow-xl transition-all">
+                <Vote className="w-5 h-5" />
+                Manage Elections
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* ===== STATS GRID ===== */}
@@ -129,7 +152,7 @@ const AdminDashboard: React.FC = () => {
             className="relative group"
           >
             {/* Glow effect */}
-            <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-600 to-green-600 rounded-2xl blur opacity-0 group-hover:opacity-20 transition duration-300" />
+            <div className="absolute -inset-0.5 bg-linear-to-r from-blue-600 to-green-600 rounded-2xl blur opacity-0 group-hover:opacity-20 transition duration-300" />
             
             {/* Card */}
             <div className="relative bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 hover:shadow-xl transition-all duration-300">
@@ -211,10 +234,10 @@ const AdminDashboard: React.FC = () => {
                     {/* Status Badge */}
                     <span className={`
                       px-3 py-1 rounded-full text-xs font-bold
-                      ${election.status === 'ongoing' 
-                        ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
-                        : 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400'
-                      }
+            {election.status === 'ongoing'
+              ? 'bg-linear-to-r from-green-500 to-green-600'
+              : 'bg-linear-to-r from-purple-500 to-purple-600'
+            }
                     `}>
                       {election.status === 'ongoing' ? '🔴 Live' : '📅 Scheduled'}
                     </span>
@@ -288,7 +311,7 @@ const AdminDashboard: React.FC = () => {
                         {approval.memberId}
                       </p>
                     </div>
-                    <span className="text-xs text-gray-400 dark:text-gray-500 whitespace-nowrap flex-shrink-0">
+                    <span className="text-xs text-gray-400 dark:text-gray-500 whitespace-nowrap shrink-0">
                       {approval.time}
                     </span>
                   </div>
@@ -296,11 +319,11 @@ const AdminDashboard: React.FC = () => {
                   {/* Action Buttons */}
                   <div className="grid grid-cols-2 gap-2">
                     <button className="px-2 py-1.5 rounded-lg bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-semibold hover:bg-green-200 dark:hover:bg-green-900/50 transition-colors flex items-center justify-center gap-1">
-                      <CheckCircle2 className="w-3 h-3 flex-shrink-0" />
+                      <CheckCircle2 className="w-3 h-3 shrink-0" />
                       <span>Approve</span>
                     </button>
                     <button className="px-2 py-1.5 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 text-xs font-semibold hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors flex items-center justify-center gap-1">
-                      <AlertCircle className="w-3 h-3 flex-shrink-0" />
+                      <AlertCircle className="w-3 h-3 shrink-0" />
                       <span>Reject</span>
                     </button>
                   </div>
@@ -317,13 +340,13 @@ const AdminDashboard: React.FC = () => {
       </div>
 
       {/* ===== QUICK ACTIONS ===== */}
-      <div className="bg-gradient-to-br from-blue-50 to-green-50 dark:from-blue-950/20 dark:to-green-950/20 border border-blue-200 dark:border-blue-800 rounded-2xl p-6">
+  <div className="bg-linear-to-br from-blue-50 to-green-50 dark:from-blue-950/20 dark:to-green-950/20 border border-blue-200 dark:border-blue-800 rounded-2xl p-6">
         <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
           Quick Actions
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <button className="group relative">
-            <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-600 to-green-600 rounded-xl blur opacity-40 group-hover:opacity-70 transition" />
+            <div className="absolute -inset-0.5 bg-linear-to-r from-blue-600 to-green-600 rounded-xl blur opacity-40 group-hover:opacity-70 transition" />
             <div className="relative bg-white dark:bg-gray-900 p-4 rounded-xl border border-gray-200 dark:border-gray-800 hover:shadow-xl transition-all duration-200 text-left">
               <Vote className="w-8 h-8 text-blue-600 dark:text-blue-400 mb-2" />
               <h3 className="font-bold text-gray-900 dark:text-white mb-1">Create Election</h3>
@@ -332,7 +355,7 @@ const AdminDashboard: React.FC = () => {
           </button>
 
           <button className="group relative">
-            <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl blur opacity-40 group-hover:opacity-70 transition" />
+            <div className="absolute -inset-0.5 bg-linear-to-r from-purple-600 to-pink-600 rounded-xl blur opacity-40 group-hover:opacity-70 transition" />
             <div className="relative bg-white dark:bg-gray-900 p-4 rounded-xl border border-gray-200 dark:border-gray-800 hover:shadow-xl transition-all duration-200 text-left">
               <Users className="w-8 h-8 text-purple-600 dark:text-purple-400 mb-2" />
               <h3 className="font-bold text-gray-900 dark:text-white mb-1">Add Voters</h3>
@@ -341,7 +364,7 @@ const AdminDashboard: React.FC = () => {
           </button>
 
           <button className="group relative">
-            <div className="absolute -inset-0.5 bg-gradient-to-r from-orange-600 to-red-600 rounded-xl blur opacity-40 group-hover:opacity-70 transition" />
+            <div className="absolute -inset-0.5 bg-linear-to-r from-orange-600 to-red-600 rounded-xl blur opacity-40 group-hover:opacity-70 transition" />
             <div className="relative bg-white dark:bg-gray-900 p-4 rounded-xl border border-gray-200 dark:border-gray-800 hover:shadow-xl transition-all duration-200 text-left">
               <BarChart3 className="w-8 h-8 text-orange-600 dark:text-orange-400 mb-2" />
               <h3 className="font-bold text-gray-900 dark:text-white mb-1">View Analytics</h3>

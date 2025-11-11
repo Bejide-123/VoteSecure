@@ -238,7 +238,7 @@ const AdminSidebar: React.FC = () => {
         className={`
           fixed top-0 left-0 h-full bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 z-40
           transition-all duration-300 ease-in-out
-          ${isSidebarOpen ? "w-72" : "w-20"}
+          ${isSidebarOpen ? "w-68" : "w-20"}
           ${
             isMobileOpen
               ? "translate-x-0"
