@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Home, Vote, History, User, LogOut, Menu, X } from "lucide-react";
+import { Home, Vote, History, User, LogOut, Menu, X, Settings2 } from "lucide-react";
 import { useLocation } from 'react-router-dom';
 import { useAuth } from "../Context/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -48,6 +48,12 @@ const VoterSidebar: React.FC = () => {
       icon: <User className="w-5 h-5" />,
       path: "/voter/profile",
     },
+    {
+      id:"settings",
+      label: "user-settings",
+      icon: <Settings2 className="w-5 h-5" />,
+      path: "/voter/settings"
+    }
   ];
 
   // ===== HANDLE MENU CLICK =====

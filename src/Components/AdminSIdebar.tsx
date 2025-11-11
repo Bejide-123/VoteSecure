@@ -18,7 +18,6 @@ import {
   Download,
   TrendingUp,
   PieChart,
-  User,
   Shield,
 } from "lucide-react";
 import { useAuth } from "../Context/AuthContext";

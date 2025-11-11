@@ -13,8 +13,10 @@ import {
   ArrowDownRight
 } from 'lucide-react';
 import { useAuth } from '../Context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const AdminDashboard: React.FC = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
 
   // ===== MOCK DATA (will come from Firebase later) =====
@@ -73,31 +75,34 @@ const AdminDashboard: React.FC = () => {
     {
       id: 1,
       title: 'Student Union Elections 2024',
-      status: 'ongoing',
+      description: 'Vote for President, VP, Secretary and other positions',
+      positions: 8,
+      deadline: '2024-11-15',
+      timeLeft: '3 days left',
+      voted: false,
       voters: 2847,
-      voted: 1234,
-      percentage: 43,
-      endDate: '2024-11-15',
-      color: 'green'
+      color: 'blue'
     },
     {
       id: 2,
-      title: 'Faculty Rep Elections',
-      status: 'ongoing',
+      title: 'Faculty Representative Elections',
+      description: 'Choose your department representatives',
+      positions: 4,
+      deadline: '2024-11-12',
+      timeLeft: '18 hours left',
+      voted: false,
       voters: 856,
-      voted: 623,
-      percentage: 73,
-      endDate: '2024-11-12',
-      color: 'blue'
+      color: 'green'
     },
     {
       id: 3,
       title: 'Sports Council Elections',
-      status: 'scheduled',
+      description: 'Vote for sports committee members',
+      positions: 5,
+      deadline: '2024-11-20',
+      timeLeft: '8 days left',
+      voted: true,
       voters: 1250,
-      voted: 0,
-      percentage: 0,
-      endDate: '2024-11-20',
       color: 'purple'
     }
   ];
@@ -208,63 +213,80 @@ const AdminDashboard: React.FC = () => {
             {/* Elections List */}
             <div className="space-y-4">
               {recentElections.map((election) => (
-                <div
-                  key={election.id}
-                  className="p-4 rounded-xl border border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 transition-all duration-200 group"
-                >
-                  
-                  {/* Top Row */}
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-gray-900 dark:text-white mb-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                        {election.title}
-                      </h3>
-                      <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
-                        <span className="flex items-center gap-1">
-                          <Users className="w-4 h-4" />
-                          {election.voters} voters
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Calendar className="w-4 h-4" />
-                          Ends {election.endDate}
-                        </span>
-                      </div>
-                    </div>
-                    
-                    {/* Status Badge */}
-                    <span className={`
-                      px-3 py-1 rounded-full text-xs font-bold
-            {election.status === 'ongoing'
-              ? 'bg-linear-to-r from-green-500 to-green-600'
-              : 'bg-linear-to-r from-purple-500 to-purple-600'
-            }
-                    `}>
-                      {election.status === 'ongoing' ? '🔴 Live' : '📅 Scheduled'}
-                    </span>
-                  </div>
-
-                  {/* Progress Bar */}
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-600 dark:text-gray-400">
-                        {election.voted} / {election.voters} voted
-                      </span>
-                      <span className="font-semibold text-gray-900 dark:text-white">
-                        {election.percentage}%
-                      </span>
-                    </div>
-                    <div className="w-full bg-gray-200 dark:bg-gray-800 rounded-full h-2 overflow-hidden">
-                      <div
-                        className={`h-full rounded-full transition-all duration-500 ${
-                          election.status === 'ongoing'
-                            ? 'bg-gradient-to-r from-green-500 to-green-600'
-                            : 'bg-gradient-to-r from-purple-500 to-purple-600'
-                        }`}
-                        style={{ width: `${election.percentage}%` }}
-                      />
-                    </div>
-                  </div>
-                </div>
+               <div
+                             key={election.id}
+                             className="group relative"
+                           >
+                             <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-600 to-green-600 rounded-2xl blur opacity-0 group-hover:opacity-30 transition duration-300" />
+                             
+                             <div className="relative bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 h-full flex flex-col">
+                               
+                               {/* Status Banner */}
+                               <div className={`px-4 py-2 ${election.voted ? 'bg-green-500' : 'bg-gradient-to-r from-orange-500 to-red-500'}`}>
+                                 <div className="flex items-center justify-between text-white text-sm font-semibold">
+                                   <div className="flex items-center gap-2">
+                                     <div className={`w-2 h-2 rounded-full ${election.voted ? 'bg-white' : 'bg-white animate-pulse'}`} />
+                                     <span>{election.voted ? 'Completed' : 'Active Now'}</span>
+                                   </div>
+                                   <div className="flex items-center gap-1">
+                                     <Clock className="w-3 h-3" />
+                                     <span>{election.timeLeft}</span>
+                                   </div>
+                                 </div>
+                               </div>
+               
+                               {/* Content */}
+                               <div className="p-6 flex flex-col flex-1">
+                                 
+                                 {/* Title */}
+                                 <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2">
+                                   {election.title}
+                                 </h3>
+                                 
+                                 <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">
+                                   {election.description}
+                                 </p>
+               
+                                 {/* Stats Grid */}
+                                 <div className="grid grid-cols-2 gap-3 mb-4">
+                                   <div className="bg-blue-50 dark:bg-blue-950/30 rounded-lg p-3 text-center">
+                                     <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{election.positions}</p>
+                                     <p className="text-xs text-gray-600 dark:text-gray-400">Positions</p>
+                                   </div>
+                                   <div className="bg-green-50 dark:bg-green-950/30 rounded-lg p-3 text-center">
+                                     <p className="text-2xl font-bold text-green-600 dark:text-green-400">{(election.voters / 1000).toFixed(1)}K</p>
+                                     <p className="text-xs text-gray-600 dark:text-gray-400">Voters</p>
+                                   </div>
+                                 </div>
+               
+                                 {/* Deadline */}
+                                 <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 mb-4 pb-4 border-b border-gray-200 dark:border-gray-800">
+                                   <Calendar className="w-3 h-3" />
+                                   <span>Ends {election.deadline}</span>
+                                 </div>
+               
+                                 {/* Action Button */}
+                                 <div className="mt-auto">
+                                   {!election.voted ? (
+                                     <button
+                                       onClick={() => navigate(`/voter/elections/${election.id}`)}
+                                       className="w-full bg-gradient-to-r from-blue-600 to-green-600 text-white py-2.5 sm:py-3 px-4 sm:px-6 rounded-xl font-bold hover:shadow-xl hover:scale-105 transition-all duration-200 flex items-center justify-center gap-2"
+                                     >
+                                       <Vote className="w-5 h-5" />
+                                       <span className="truncate">Cast Your Vote</span>
+                                       <ArrowRight className="w-5 h-5 hidden sm:inline" />
+                                     </button>
+                                   ) : (
+                                     <button className="w-full border-2 border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 py-3 rounded-xl font-bold hover:border-blue-500 dark:hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-200 flex items-center justify-center gap-2">
+                                       <BarChart3 className="w-5 h-5" />
+                                       View Results
+                                     </button>
+                                   )}
+                                 </div>
+                               </div>
+                             </div>
+                           </div>
+                
               ))}
             </div>
           </div>
