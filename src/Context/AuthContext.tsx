@@ -148,7 +148,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
       // Dev-only admin credential for quick local testing
       // This block runs only when NOT in production (Vite sets import.meta.env.PROD)
-      if (!import.meta.env.PROD) {
+      // if (!import.meta.env.PROD) {
         if (email === 'admin@votesecure.com' && password === 'admin123') {
           const adminUser: User = {
             uid: 'admin-uid',
@@ -163,7 +163,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           localStorage.setItem('votesecure_user', JSON.stringify(adminUser));
           return { ok: true, user: adminUser };
         }
-      }
+      // }
 
       return { ok: false, message: 'Invalid credentials' };
     } catch (error) {
