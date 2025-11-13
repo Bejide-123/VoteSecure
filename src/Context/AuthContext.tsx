@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, useEffect} from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase'; // Import Supabase client
 import type { ReactNode } from 'react';
 
 // ===== TYPE DEFINITIONS =====
@@ -40,9 +41,6 @@ interface AuthContextType {
   login: (userData: User) => void;
   logout: () => void;
   updateUser: (updates: Partial<User>) => void;
-  // High level credential/API methods
-  loginWithCredentials: (email: string, password: string) => Promise<{ ok: boolean; message?: string; user?: User }>;
-  register: (data: Omit<User, 'uid' | 'createdAt'> | any, selfie?: string | File, autoLogin?: boolean) => Promise<{ ok: boolean; message?: string; user?: User }>;
 }
 
 // ===== CREATE CONTEXT =====
@@ -74,31 +72,54 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   // It checks if there's a saved user in localStorage
   
   useEffect(() => {
-    const loadUser = () => {
+    const loadUser = async () => {
       try {
-        // Get saved user from localStorage
+        // First check localStorage for cached user
         const savedUser = localStorage.getItem('votesecure_user');
         
         if (savedUser) {
-          // Parse the JSON string back to an object
           const parsedUser = JSON.parse(savedUser);
-          
-          // Restore the Date object (it was saved as a string)
           parsedUser.createdAt = new Date(parsedUser.createdAt);
-          
-          // Set the user state
           setUser(parsedUser);
-          
           console.log('✅ User loaded from storage:', parsedUser.email);
-        } else {
-          console.log('ℹ️ No saved user found');
+        }
+
+        // Then check if there's an active Supabase session
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session?.user) {
+          // Refresh user data from database
+          const { data: profile } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+
+          if (profile) {
+            const userData = {
+              uid: profile.id,
+              email: profile.email,
+              userType: profile.user_type as 'voter' | 'admin',
+              fullName: profile.full_name,
+              memberId: profile.member_id,
+              organization: profile.organization,
+              department: profile.department || undefined,
+              position: profile.position || undefined,
+              selfieUrl: profile.selfie_url || undefined,
+              createdAt: new Date(profile.created_at)
+            };
+            
+            setUser(userData);
+            localStorage.setItem('votesecure_user', JSON.stringify(userData));
+            console.log('✅ User session restored from Supabase');
+          }
+        } else if (!savedUser) {
+          console.log('ℹ️ No saved user or session found');
         }
       } catch (error) {
         console.error('❌ Error loading user:', error);
-        // Clear corrupted data
         localStorage.removeItem('votesecure_user');
       } finally {
-        // Always set loading to false when done
         setIsLoading(false);
       }
     };
@@ -122,96 +143,15 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       console.error('❌ Error saving user:', error);
     }
   };
-
-  // ===== LOGIN WITH CREDENTIALS =====
-  // High-level method that UI code can call with email/password
-  const loginWithCredentials = async (email: string, password: string): Promise<{ ok: boolean; message?: string; user?: User }> => {
-    setIsLoading(true);
-    try {
-      // TODO: replace with real API call
-      await new Promise((r) => setTimeout(r, 800));
-
-      if (email === 'demo@votesecure.com' && password === 'demo123') {
-        const demoUser: User = {
-          uid: 'demo-uid',
-          email,
-          userType: 'voter',
-          fullName: 'Demo User',
-          memberId: 'VOTER001',
-          organization: 'VoteSecure University',
-          createdAt: new Date()
-        };
-        setUser(demoUser);
-        localStorage.setItem('votesecure_user', JSON.stringify(demoUser));
-        return { ok: true, user: demoUser };
-      }
-
-      // Dev-only admin credential for quick local testing
-      // This block runs only when NOT in production (Vite sets import.meta.env.PROD)
-      // if (!import.meta.env.PROD) {
-        if (email === 'admin@votesecure.com' && password === 'admin123') {
-          const adminUser: User = {
-            uid: 'admin-uid',
-            email,
-            userType: 'admin',
-            fullName: 'Admin User',
-            memberId: 'ADMIN001',
-            organization: 'VoteSecure',
-            createdAt: new Date()
-          };
-          setUser(adminUser);
-          localStorage.setItem('votesecure_user', JSON.stringify(adminUser));
-          return { ok: true, user: adminUser };
-        }
-      // }
-
-      return { ok: false, message: 'Invalid credentials' };
-    } catch (error) {
-      return { ok: false, message: 'Network error' };
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // ===== REGISTER (mocked) =====
-  // Accepts registration data and optionally auto-logs in the created user
-  const register = async (data: Omit<User, 'uid' | 'createdAt'> | any, selfie?: string | File, autoLogin = false): Promise<{ ok: boolean; message?: string; user?: User }> => {
-    setIsLoading(true);
-    try {
-      // TODO: replace with upload + API call
-      await new Promise((r) => setTimeout(r, 1200));
-
-      const createdUser: User = {
-        uid: 'user-' + Date.now(),
-        email: data.email,
-        userType: data.userType || 'voter',
-        fullName: data.fullName || data.fullName || 'New User',
-        memberId: data.memberId || data.memberId || 'MEM' + Date.now(),
-        organization: data.organization || data.organization || 'Organization',
-        department: data.department,
-        position: data.position,
-        selfieUrl: selfie ? (typeof selfie === 'string' ? selfie : 'uploaded-selfie-url') : undefined,
-        createdAt: new Date()
-      };
-
-      if (autoLogin) {
-        setUser(createdUser);
-        localStorage.setItem('votesecure_user', JSON.stringify(createdUser));
-      }
-
-      return { ok: true, user: createdUser };
-    } catch (error) {
-      return { ok: false, message: 'Registration failed' };
-    } finally {
-      setIsLoading(false);
-    }
-  };
   
   // ===== LOGOUT FUNCTION =====
   // This is called when a user logs out
   
-  const logout = () => {
+  const logout = async () => {
     try {
+      // Sign out from Supabase
+      await supabase.auth.signOut();
+      
       // Clear user from state
       setUser(null);
       
@@ -259,8 +199,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     isVoter,
     isLoading,
     login,
-    loginWithCredentials,
-    register,
     logout,
     updateUser,
   };

@@ -1,29 +1,29 @@
 import { useState, createContext, useContext, useRef } from "react";
 import type { ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "./AuthContext";
+import { supabase } from "../lib/supabase"; // Import Supabase client
 
 interface RegistrationFormData {
-  userType: 'voter' | 'admin';  // ✅ NEW: User type selection
+  userType: 'voter' | 'admin';
   fullName: string;
   email: string;
-  memberId: string;  // ✅ CHANGED: from studentId to memberId (more generic)
-  organization: string;  // ✅ CHANGED: from school to organization
+  memberId: string;
+  organization: string;
   department: string;
-  position: string;  // ✅ NEW: Position/role (required for admins)
+  position: string;
   password: string;
   confirmPassword: string;
   agreeToTerms: boolean;
 }
 
 interface FormErrors {
-  userType?: string;  // ✅ NEW
+  userType?: string;
   fullName?: string;
   email?: string;
-  memberId?: string;  // ✅ CHANGED
-  organization?: string;  // ✅ CHANGED
+  memberId?: string;
+  organization?: string;
   department?: string;
-  position?: string;  // ✅ NEW
+  position?: string;
   password?: string;
   confirmPassword?: string;
   agreeToTerms?: string;
@@ -40,34 +40,24 @@ interface PasswordStrength {
 interface RegisterContextType {
   formData: RegistrationFormData;
   setFormData: React.Dispatch<React.SetStateAction<RegistrationFormData>>;
-  
   showPassword: boolean;
   setShowPassword: React.Dispatch<React.SetStateAction<boolean>>;
-  
   showConfirmPassword: boolean;
   setShowConfirmPassword: React.Dispatch<React.SetStateAction<boolean>>;
-  
   errors: FormErrors;
   setErrors: React.Dispatch<React.SetStateAction<FormErrors>>;
-  
   isLoading: boolean;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
-  
   successMessage: string;
   setSuccessMessage: React.Dispatch<React.SetStateAction<string>>;
-  
   passwordStrength: PasswordStrength;
   evaluatePasswordStrength: (password: string) => PasswordStrength;
-
   handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
   handleSubmit: () => Promise<void>;
-
   currentStep: number;
   setCurrentStep: React.Dispatch<React.SetStateAction<number>>;
-  
   selfieImage: string | null;
   setSelfieImage: React.Dispatch<React.SetStateAction<string | null>>;
-  
   handleFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   fileInputRef: React.RefObject<HTMLInputElement | null>;
   validateStep: (step: number) => boolean;
@@ -80,16 +70,15 @@ interface RegisterProviderProps {
 const RegisterContext = createContext<RegisterContextType | undefined>(undefined);
 
 export const RegisterProvider = ({ children }: RegisterProviderProps) => {
-  const { register } = useAuth();
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const [formData, setFormData] = useState<RegistrationFormData>({
-    userType: 'voter',  // ✅ NEW: Default to voter
+    userType: 'voter',
     fullName: '',
     email: '',
-    memberId: '',  // ✅ CHANGED
-    organization: '',  // ✅ CHANGED
+    memberId: '',
+    organization: '',
     department: '',
-    position: '',  // ✅ NEW
+    position: '',
     password: '',
     confirmPassword: '',
     agreeToTerms: false
@@ -102,6 +91,7 @@ export const RegisterProvider = ({ children }: RegisterProviderProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [selfieImage, setSelfieImage] = useState<string | null>(null);
+  const [selfieFile, setSelfieFile] = useState<File | null>(null); // Store actual file
       
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -128,7 +118,6 @@ export const RegisterProvider = ({ children }: RegisterProviderProps) => {
     const newErrors: FormErrors = {};
 
     if (step === 1) {
-      // ✅ NEW: Validate user type
       if (!formData.userType) {
         newErrors.userType = 'Please select account type';
       }
@@ -145,24 +134,19 @@ export const RegisterProvider = ({ children }: RegisterProviderProps) => {
         newErrors.email = 'Please enter a valid email';
       }
 
-      // ✅ CHANGED: memberId instead of studentId
       if (!formData.memberId.trim()) {
         newErrors.memberId = 'Member/Staff ID is required';
       }
     }
 
     if (step === 2) {
-      // ✅ CHANGED: organization instead of school
       if (!formData.organization.trim()) {
         newErrors.organization = 'Organization name is required';
       }
 
-      // ✅ NEW: Position required for admins
       if (formData.userType === 'admin' && !formData.position.trim()) {
         newErrors.position = 'Position/Role is required for admins';
       }
-
-      // Department is optional now (not all organizations have departments)
     }
 
     if (step === 3) {
@@ -221,6 +205,11 @@ export const RegisterProvider = ({ children }: RegisterProviderProps) => {
         setErrors(prev => ({ ...prev, selfie: 'Image must be less than 5MB' }));
         return;
       }
+      
+      // Store the actual file for upload
+      setSelfieFile(file);
+      
+      // Create preview
       const reader = new FileReader();
       reader.onloadend = () => {
         setSelfieImage(reader.result as string);
@@ -233,29 +222,97 @@ export const RegisterProvider = ({ children }: RegisterProviderProps) => {
   const handleSubmit = async () => {
     if (!validateStep(3)) return;
     setIsLoading(true);
+    setErrors({});
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // ===== STEP 1: CREATE AUTH USER =====
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+      });
 
-      // Call AuthContext.register (backend handling) - do not auto-login by default
-  const res = await register(formData, selfieImage ?? undefined, false);
+      if (authError) throw authError;
+      if (!authData.user) throw new Error('Failed to create user account');
 
-      if (res.ok) {
-        console.log('Registration Data:', {
-          ...formData,
-          selfieImage: selfieImage ? 'Image uploaded' : 'No image'
-        });
-        setSuccessMessage('Registration successful! Check your email.');
-        alert(`✅ ${formData.userType === 'admin' ? 'Admin' : 'Voter'} registration successful! Check your email.`);
-        setTimeout(() => {
-          navigate('/login');
-        }, 1500);
-      } else {
-        setErrors({ general: res.message || 'Registration failed. Please try again.' });
+      const userId = authData.user.id;
+
+      // ===== STEP 2: UPLOAD SELFIE TO STORAGE =====
+      let selfieUrl = null;
+      
+      if (selfieFile) {
+        const fileExt = selfieFile.name.split('.').pop();
+        const fileName = `${userId}-${Date.now()}.${fileExt}`;
+        const filePath = `selfies/${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('user-photos')
+          .upload(filePath, selfieFile);
+
+        if (uploadError) {
+          console.error('Upload error:', uploadError);
+          // Don't fail registration if image upload fails
+        } else {
+          // Get public URL
+          const { data: urlData } = supabase.storage
+            .from('user-photos')
+            .getPublicUrl(filePath);
+          
+          selfieUrl = urlData.publicUrl;
+        }
       }
-    } catch (error) {
-      setErrors({ general: 'Registration failed. Please try again.' });
+
+      // ===== STEP 3: CREATE USER PROFILE IN DATABASE =====
+      const { error: profileError } = await supabase
+        .from('users')
+        .insert({
+          id: userId,
+          email: formData.email,
+          user_type: formData.userType,
+          full_name: formData.fullName,
+          member_id: formData.memberId,
+          organization: formData.organization,
+          department: formData.department || null,
+          position: formData.position || null,
+          selfie_url: selfieUrl
+        });
+
+      if (profileError) throw profileError;
+
+      // ===== SUCCESS! =====
+      setSuccessMessage('✅ Registration successful! Redirecting to login...');
+      
+      // Clear form
+      setFormData({
+        userType: 'voter',
+        fullName: '',
+        email: '',
+        memberId: '',
+        organization: '',
+        department: '',
+        position: '',
+        password: '',
+        confirmPassword: '',
+        agreeToTerms: false
+      });
+      setSelfieImage(null);
+      setSelfieFile(null);
+
+      // Redirect to login after 2 seconds
+      setTimeout(() => {
+        navigate('/login');
+      }, 2000);
+
+    } catch (error: any) {
+      console.error('Registration error:', error);
+      
+      // Handle specific error types
+      if (error.message.includes('already registered')) {
+        setErrors({ email: 'This email is already registered' });
+      } else if (error.message.includes('weak password')) {
+        setErrors({ password: 'Password is too weak' });
+      } else {
+        setErrors({ general: error.message || 'Registration failed. Please try again.' });
+      }
     } finally {
       setIsLoading(false);
     }

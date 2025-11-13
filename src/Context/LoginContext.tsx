@@ -1,7 +1,8 @@
 import { useState, createContext, useContext } from "react";
 import type { ReactNode } from "react";
-import { useAuth } from "./AuthContext";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "../lib/supabase";
+import { useAuth } from "./AuthContext";
 
 interface LoginFormData {
   email: string;
@@ -35,7 +36,8 @@ const LoginContext = createContext<LoginContextType | undefined>(undefined);
 
 export const LoginProvider = ({ children }: LoginProviderProps) => {
   const navigate = useNavigate();
-  const { loginWithCredentials } = useAuth();
+  const { login } = useAuth();
+  
   const [formData, setFormData] = useState<LoginFormData>({
     email: "",
     password: "",
@@ -96,31 +98,78 @@ export const LoginProvider = ({ children }: LoginProviderProps) => {
     setErrors({});
 
     try {
-      // Use AuthContext to perform credential login
-      const res = await loginWithCredentials(formData.email, formData.password);
-
-      if (res.ok) {
-        setSuccessMessage("Login successful! Redirecting...");
-        setFormData({ email: "", password: "", rememberMe: false });
-
-        // Redirect based on user type returned by AuthContext
-        const userType = res.user?.userType;
-
-        setTimeout(() => {
-          if (userType === "admin") {
-            navigate("/admin/dashboard");
-          } else {
-            // default voter/dashboard route
-            navigate("/voter/dashboard");
-          }
-        }, 100);
-      } else {
-        setErrors({ general: res.message || 'Invalid email or password' });
-      }
-    } catch (error) {
-      setErrors({
-        general: "Something went wrong. Please try again.",
+      // ===== STEP 1: SIGN IN WITH SUPABASE AUTH =====
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email: formData.email,
+        password: formData.password,
       });
+
+      if (authError) throw authError;
+      if (!authData.user) throw new Error('Login failed');
+
+      // ===== STEP 2: GET USER PROFILE FROM DATABASE =====
+      const { data: profile, error: profileError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', authData.user.id)
+        .single();
+
+      if (profileError) throw profileError;
+      if (!profile) throw new Error('User profile not found');
+
+      // ===== STEP 3: CREATE USER DATA OBJECT FOR AUTH CONTEXT =====
+      const userData = {
+        uid: profile.id,
+        email: profile.email,
+        userType: profile.user_type as 'voter' | 'admin',
+        fullName: profile.full_name,
+        memberId: profile.member_id,
+        organization: profile.organization,
+        department: profile.department || undefined,
+        position: profile.position || undefined,
+        selfieUrl: profile.selfie_url || undefined,
+        createdAt: new Date(profile.created_at)
+      };
+
+      // ===== STEP 4: SAVE TO AUTH CONTEXT & LOCAL STORAGE =====
+      login(userData);
+
+      // ===== SUCCESS! =====
+      setSuccessMessage('Login successful! Redirecting...');
+
+      // Clear password (security)
+      setFormData(prev => ({ ...prev, password: '' }));
+
+      // ===== STEP 5: REDIRECT BASED ON USER TYPE =====
+      setTimeout(() => {
+        if (userData.userType === 'admin') {
+          navigate('/admin/dashboard');
+        } else {
+          navigate('/voter/dashboard');
+        }
+      }, 1000);
+
+    } catch (error: any) {
+      console.error('Login error:', error);
+      
+      // ===== HANDLE SPECIFIC ERRORS =====
+      if (error.message === 'Invalid login credentials') {
+        setErrors({
+          general: 'Invalid email or password. Please try again.',
+        });
+      } else if (error.message.includes('Email not confirmed')) {
+        setErrors({
+          general: 'Please verify your email before logging in.',
+        });
+      } else if (error.message === 'User profile not found') {
+        setErrors({
+          general: 'Account setup incomplete. Please contact support.',
+        });
+      } else {
+        setErrors({
+          general: error.message || 'Something went wrong. Please try again.',
+        });
+      }
     } finally {
       setIsLoading(false);
     }
