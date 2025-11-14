@@ -225,18 +225,35 @@ export const RegisterProvider = ({ children }: RegisterProviderProps) => {
     setErrors({});
     
     try {
+      console.log('🔵 Starting registration...');
+      console.log('📋 Form data:', {
+        email: formData.email,
+        userType: formData.userType,
+        fullName: formData.fullName,
+        memberId: formData.memberId,
+        organization: formData.organization,
+        department: formData.department,
+        position: formData.position
+      });
+      
       // ===== STEP 1: CREATE AUTH USER =====
+      console.log('🔵 Step 1: Creating auth user...');
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
       });
 
+      console.log('✅ Auth data:', authData);
+      console.log('❌ Auth error:', authError);
+
       if (authError) throw authError;
       if (!authData.user) throw new Error('Failed to create user account');
 
       const userId = authData.user.id;
+      console.log('🆔 User ID:', userId);
 
       // ===== STEP 2: UPLOAD SELFIE TO STORAGE =====
+      console.log('🔵 Step 2: Uploading selfie...');
       let selfieUrl = null;
       
       if (selfieFile) {
@@ -244,9 +261,13 @@ export const RegisterProvider = ({ children }: RegisterProviderProps) => {
         const fileName = `${userId}-${Date.now()}.${fileExt}`;
         const filePath = `selfies/${fileName}`;
 
+        console.log('📁 Uploading to:', filePath);
+
         const { error: uploadError } = await supabase.storage
           .from('user-photos')
           .upload(filePath, selfieFile);
+
+        console.log('❌ Upload error:', uploadError);
 
         if (uploadError) {
           console.error('Upload error:', uploadError);
@@ -258,27 +279,39 @@ export const RegisterProvider = ({ children }: RegisterProviderProps) => {
             .getPublicUrl(filePath);
           
           selfieUrl = urlData.publicUrl;
+          console.log('🖼️ Selfie URL:', selfieUrl);
         }
       }
 
       // ===== STEP 3: CREATE USER PROFILE IN DATABASE =====
-      const { error: profileError } = await supabase
+      console.log('🔵 Step 3: Creating user profile...');
+      
+      const profileData = {
+        id: userId,
+        email: formData.email,
+        user_type: formData.userType,
+        full_name: formData.fullName,
+        member_id: formData.memberId,
+        organization: formData.organization,
+        department: formData.department || null,
+        position: formData.position || null,
+        selfie_url: selfieUrl
+      };
+      
+      console.log('📝 Profile data to insert:', profileData);
+
+      const { data: insertedData, error: profileError } = await supabase
         .from('users')
-        .insert({
-          id: userId,
-          email: formData.email,
-          user_type: formData.userType,
-          full_name: formData.fullName,
-          member_id: formData.memberId,
-          organization: formData.organization,
-          department: formData.department || null,
-          position: formData.position || null,
-          selfie_url: selfieUrl
-        });
+        .insert(profileData)
+        .select();
+
+      console.log('✅ Inserted data:', insertedData);
+      console.log('❌ Profile error:', profileError);
 
       if (profileError) throw profileError;
 
       // ===== SUCCESS! =====
+      console.log('🎉 Registration successful!');
       setSuccessMessage('✅ Registration successful! Redirecting to login...');
       
       // Clear form
@@ -303,13 +336,19 @@ export const RegisterProvider = ({ children }: RegisterProviderProps) => {
       }, 2000);
 
     } catch (error: any) {
-      console.error('Registration error:', error);
+      console.error('💥 Registration error:', error);
+      console.error('💥 Error message:', error.message);
+      console.error('💥 Error details:', error.details);
+      console.error('💥 Error hint:', error.hint);
+      console.error('💥 Error code:', error.code);
       
       // Handle specific error types
-      if (error.message.includes('already registered')) {
+      if (error.message.includes('already registered') || error.code === '23505') {
         setErrors({ email: 'This email is already registered' });
       } else if (error.message.includes('weak password')) {
         setErrors({ password: 'Password is too weak' });
+      } else if (error.code === '42501') {
+        setErrors({ general: 'Permission denied. Please contact support.' });
       } else {
         setErrors({ general: error.message || 'Registration failed. Please try again.' });
       }

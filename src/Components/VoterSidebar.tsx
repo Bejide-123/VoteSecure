@@ -15,6 +15,13 @@ interface MenuItem {
 
 const VoterSidebar: React.FC = () => {
   const { user, logout } = useAuth();
+
+// ADD THIS DEBUG CODE:
+console.log('🔍 User data in sidebar:', user);
+console.log('🔍 Full name:', user?.fullName);
+console.log('🔍 Organization:', user?.organization);
+console.log('🔍 Member ID:', user?.memberId);
+
   const navigate = useNavigate();
   const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);

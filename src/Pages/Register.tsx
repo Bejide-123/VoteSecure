@@ -74,7 +74,7 @@ const RegistrationPage: React.FC = () => {
                     {currentStep > step ? <Check className="w-6 h-6" /> : step}
                   </div>
                   <span className={`text-xs mt-2 font-medium ${currentStep >= step ? 'text-gray-900 dark:text-white' : 'text-gray-400'}`}>
-                    {step === 1 ? 'Personal' : step === 2 ? 'School' : 'Security'}
+                    {step === 1 ? 'Personal' : step === 2 ? 'Organization' : 'Security'}
                   </span>
                 </div>
                 {step < 3 && (
