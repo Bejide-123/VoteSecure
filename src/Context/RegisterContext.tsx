@@ -241,6 +241,12 @@ export const RegisterProvider = ({ children }: RegisterProviderProps) => {
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
+        options: {
+          data: {
+            user_type: formData.userType,
+            full_name: formData.fullName,
+          }
+        }
       });
 
       console.log('✅ Auth data:', authData);

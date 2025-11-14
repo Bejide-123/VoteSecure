@@ -285,10 +285,10 @@ export const ProtectedRoute = ({ children, requireAdmin = false }: ProtectedRout
             You need admin privileges to access this page.
           </p>
           <button
-            onClick={() => window.location.href = '/dashboard'}
+            onClick={() => window.location.href = '/login'}
             className="bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-blue-700 transition"
           >
-            Go to Dashboard
+            Go to Login
           </button>
         </div>
       </div>
