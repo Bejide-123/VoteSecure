@@ -108,14 +108,30 @@ export const LoginProvider = ({ children }: LoginProviderProps) => {
       if (!authData.user) throw new Error('Login failed');
 
       // ===== STEP 2: GET USER PROFILE FROM DATABASE =====
-      const { data: profile, error: profileError } = await supabase
+      const { data: profileData, error: profileError } = await supabase
         .from('users')
         .select('*')
-        .eq('id', authData.user.id)
-        .single();
+        .eq('id', authData.user.id);
 
-      if (profileError) throw profileError;
-      if (!profile) throw new Error('User profile not found');
+      // Handle errors
+      if (profileError) {
+        console.error('Profile error details:', profileError);
+        throw profileError;
+      }
+
+      // Check if profile exists
+      if (!profileData || profileData.length === 0) {
+        throw new Error('User profile not found');
+      }
+
+      // Check for multiple profiles (database integrity issue)
+      if (profileData.length > 1) {
+        console.error('Multiple profiles found for user:', authData.user.id);
+        throw new Error('Multiple user profiles detected. Please contact support.');
+      }
+
+      // Get the single profile
+      const profile = profileData[0];
 
       // ===== STEP 3: CREATE USER DATA OBJECT FOR AUTH CONTEXT =====
       const userData = {
@@ -164,6 +180,10 @@ export const LoginProvider = ({ children }: LoginProviderProps) => {
       } else if (error.message === 'User profile not found') {
         setErrors({
           general: 'Account setup incomplete. Please contact support.',
+        });
+      } else if (error.message.includes('Multiple user profiles')) {
+        setErrors({
+          general: 'Database error detected. Please contact support.',
         });
       } else {
         setErrors({
