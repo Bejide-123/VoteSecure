@@ -1,7 +1,7 @@
 import { useState, createContext, useContext, useRef } from "react";
 import type { ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "../lib/supabase"; // Import Supabase client
+import { supabase } from "../lib/supabase";
 
 interface RegistrationFormData {
   userType: "voter" | "admin";
@@ -95,7 +95,8 @@ export const RegisterProvider = ({ children }: RegisterProviderProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [selfieImage, setSelfieImage] = useState<string | null>(null);
-  const [selfieFile, setSelfieFile] = useState<File | null>(null); // Store actual file
+  const [selfieFile, setSelfieFile] = useState<File | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false); // Prevent double submission
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -218,10 +219,8 @@ export const RegisterProvider = ({ children }: RegisterProviderProps) => {
         return;
       }
 
-      // Store the actual file for upload
       setSelfieFile(file);
 
-      // Create preview
       const reader = new FileReader();
       reader.onloadend = () => {
         setSelfieImage(reader.result as string);
@@ -232,7 +231,15 @@ export const RegisterProvider = ({ children }: RegisterProviderProps) => {
   };
 
   const handleSubmit = async () => {
+    // Prevent double submission
+    if (isSubmitting) {
+      console.log("⚠️ Already submitting, ignoring duplicate request");
+      return;
+    }
+
     if (!validateStep(3)) return;
+    
+    setIsSubmitting(true);
     setIsLoading(true);
     setErrors({});
 
@@ -291,7 +298,6 @@ export const RegisterProvider = ({ children }: RegisterProviderProps) => {
           console.error("Upload error:", uploadError);
           // Don't fail registration if image upload fails
         } else {
-          // Get public URL
           const { data: urlData } = supabase.storage
             .from("user-photos")
             .getPublicUrl(filePath);
@@ -317,13 +323,11 @@ export const RegisterProvider = ({ children }: RegisterProviderProps) => {
       };
 
       console.log("📝 Profile data to insert:", profileData);
-      // Right before line 297 (before the INSERT)
-      console.log("📝 About to insert with formData:", formData);
-      console.log("📝 Profile data object:", profileData);
 
+      // Use UPSERT instead of INSERT to handle duplicates gracefully
       const { data: insertedData, error: profileError } = await supabase
         .from("users")
-        .insert(profileData)
+        .upsert(profileData, { onConflict: 'id' })
         .select();
 
       console.log("✅ Inserted data:", insertedData);
@@ -363,11 +367,11 @@ export const RegisterProvider = ({ children }: RegisterProviderProps) => {
       console.error("💥 Error code:", error.code);
 
       // Handle specific error types
-      if (
-        error.message.includes("already registered") ||
-        error.code === "23505"
-      ) {
+      if (error.message.includes("User already registered")) {
         setErrors({ email: "This email is already registered" });
+      } else if (error.code === "23505") {
+        // Duplicate key - user already exists
+        setErrors({ email: "This email is already registered. Please login instead." });
       } else if (error.message.includes("weak password")) {
         setErrors({ password: "Password is too weak" });
       } else if (error.code === "42501") {
@@ -379,6 +383,7 @@ export const RegisterProvider = ({ children }: RegisterProviderProps) => {
       }
     } finally {
       setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
