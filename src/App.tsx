@@ -11,6 +11,10 @@ import ElectionDetails from "./Pages/Electiondetails";
 import VotingPage from "./Pages/votingpage";
 import VoteSuccessPage from "./Pages/VoteSuccessPage";
 import AllElectionsPage from "./Pages/Elections";
+import CreateElection from "./Pages/CreateElections";
+import OngoingElections from "./Pages/OngoingElection";
+import ScheduledElections from "./Pages/ScheduledElection";
+import PastElections from "./Pages/PastElections";
 const App = () => {
   return (
     <RegisterProvider>
@@ -23,6 +27,38 @@ const App = () => {
           element={
             <ProtectedRoute requireAdmin={true}>
               <AdminPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/elections/create"
+          element={
+            <ProtectedRoute requireAdmin={true}>
+              <CreateElection />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/elections/ongoing"
+          element={
+            <ProtectedRoute requireAdmin={true}>
+              <OngoingElections />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/elections/scheduled"
+          element={
+            <ProtectedRoute requireAdmin={true}>
+              <ScheduledElections />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/elections/past"
+          element={
+            <ProtectedRoute requireAdmin={true}>
+              <PastElections />
             </ProtectedRoute>
           }
         />
