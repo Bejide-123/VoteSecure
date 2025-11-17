@@ -18,6 +18,9 @@ import PastElections from "./Pages/PastElections";
 import ApproveCandidates from "./Pages/ApproveCandidates";
 import AllCandidates from "./Pages/AllCandidates";
 import ManagePositions from "./Pages/ManagePositions";
+import AllVoters from "./Pages/AllVoters";
+import ApproveVoters from "./Pages/ApproveVoters";
+
 const App = () => {
   return (
     <RegisterProvider>
@@ -62,6 +65,22 @@ const App = () => {
           element={
             <ProtectedRoute requireAdmin={true}>
               <PastElections />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/voters/approve"
+          element={
+            <ProtectedRoute requireAdmin={true}>
+              <ApproveVoters />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/voters/all"
+          element={
+            <ProtectedRoute requireAdmin={true}>
+              <AllVoters />
             </ProtectedRoute>
           }
         />

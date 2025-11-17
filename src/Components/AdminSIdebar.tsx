@@ -110,12 +110,12 @@ const AdminSidebar: React.FC = () => {
           icon: <Users className="w-4 h-4" />,
           path: "/admin/voters/all",
         },
-        {
-          id: "search-voters",
-          label: "Search Voters",
-          icon: <Search className="w-4 h-4" />,
-          path: "/admin/voters/search",
-        },
+        // {
+        //   id: "search-voters",
+        //   label: "Search Voters",
+        //   icon: <Search className="w-4 h-4" />,
+        //   path: "/admin/voters/search",
+        // },
         {
           id: "export-voters",
           label: "Export List",
