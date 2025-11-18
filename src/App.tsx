@@ -20,6 +20,10 @@ import AllCandidates from "./Pages/AllCandidates";
 import ManagePositions from "./Pages/ManagePositions";
 import AllVoters from "./Pages/AllVoters";
 import ApproveVoters from "./Pages/ApproveVoters";
+import MyVotes from "./Pages/MyVotes";
+import VoterTurnout from "./Pages/VotersTurnout";
+import ResultsAnalysis from "./Pages/Results";
+import Demographics from "./Pages/Demographics";
 
 const App = () => {
   return (
@@ -109,6 +113,30 @@ const App = () => {
           }
         />
         <Route
+          path="/admin/analytics/turnout"
+          element={
+            <ProtectedRoute requireAdmin={true}>
+              <VoterTurnout />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/analytics/results"
+          element={
+            <ProtectedRoute requireAdmin={true}>
+              <ResultsAnalysis />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/analytics/demographics"
+          element={
+            <ProtectedRoute requireAdmin={true}>
+              <Demographics />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/voter/dashboard"
           element={
             <ProtectedRoute>
@@ -153,6 +181,16 @@ const App = () => {
             <ProtectedRoute>
               <VoterLayout>
                 <AllElectionsPage />
+              </VoterLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/voter/my-votes"
+          element={
+            <ProtectedRoute>
+              <VoterLayout>
+                <MyVotes />
               </VoterLayout>
             </ProtectedRoute>
           }
