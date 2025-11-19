@@ -270,7 +270,7 @@ const ResultsAnalysis: React.FC = () => {
 
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="space-y-4">
-                  {position.candidates.map((candidate, index) => (
+                  {position.candidates.map((candidate) => (
                     <div
                       key={candidate.id}
                       className={`flex items-center gap-4 p-4 rounded-xl border-2 transition-all ${
@@ -327,18 +327,20 @@ const ResultsAnalysis: React.FC = () => {
                   <ResponsiveContainer width="100%" height={250}>
                     <PieChart>
                       <Pie
-                        data={position.candidates}
+                        data={position.candidates as any}
                         cx="50%"
                         cy="50%"
                         labelLine={false}
-                        label={({ name, percentage }) =>
-                          `${name.split(" ")[0]}: ${percentage.toFixed(1)}%`
+                        label={({ name, percent }) =>
+                          `${(name || "").split(" ")[0]}: ${(
+                            (percent || 0) * 100
+                          ).toFixed(1)}%`
                         }
                         outerRadius={80}
                         fill="#8884d8"
                         dataKey="votes"
                       >
-                        {position.candidates.map((entry, index) => (
+                        {position.candidates.map((_, index) => (
                           <Cell
                             key={`cell-${index}`}
                             fill={COLORS[index % COLORS.length]}
