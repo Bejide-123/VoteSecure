@@ -25,7 +25,7 @@ import { useAuth } from "../Context/AuthContext";
 const AdminSettings: React.FC = () => {
   const { user } = useAuth();
   const [systemName, setSystemName] = useState("VoteSecure");
-  const [organizationName, setOrganizationName] = useState("University of Lagos");
+  // const [organizationName, setOrganizationName] = useState("University of Lagos");
   const [supportEmail, setSupportEmail] = useState("support@votesecure.ng");
   const [allowRegistration, setAllowRegistration] = useState(true);
   const [requireVerification, setRequireVerification] = useState(true);
