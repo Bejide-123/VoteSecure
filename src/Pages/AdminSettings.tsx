@@ -126,7 +126,8 @@ const AdminSettings: React.FC = () => {
               <input
                 type="text"
                 value={user?.organization}
-                onChange={(e) => setOrganizationName(e.target.value)}
+                // onChange={(e) => setOrganizationName(e.target.value)}
+                disabled
                 className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 transition-all"
               />
             </div>
