@@ -16,6 +16,7 @@ import {
   Save,
   X,
 } from "lucide-react";
+import { useAuth } from "../Context/AuthContext"
 
 interface UserProfile {
   fullName: string;
@@ -31,6 +32,7 @@ interface UserProfile {
 }
 
 const VoterProfile: React.FC = () => {
+  const { user } = useAuth(); 
   const [isEditing, setIsEditing] = useState(false);
   const [profile, setProfile] = useState<UserProfile>({
     fullName: "Adebayo Johnson",
@@ -153,7 +155,7 @@ const VoterProfile: React.FC = () => {
               <div className="flex flex-col items-center">
                 <div className="relative mb-4">
                   <img
-                    src={isEditing ? editedProfile.profileImage : profile.profileImage}
+                    src={user?.selfieUrl || profile.profileImage}
                     alt="Profile"
                     className="w-32 h-32 rounded-full border-4 border-gray-200 dark:border-gray-700"
                   />
@@ -170,7 +172,7 @@ const VoterProfile: React.FC = () => {
                   )}
                 </div>
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white text-center mb-1">
-                  {profile.fullName}
+                  {user?.fullName}
                 </h2>
                 <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
                   {profile.memberId}
@@ -230,7 +232,7 @@ const VoterProfile: React.FC = () => {
                     </span>
                   </div>
                   <span className="text-lg font-bold text-orange-600 dark:text-orange-400">
-                    {stats.memberSince}
+                    {new Date(user?.createdAt || new Date()).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
                   </span>
                 </div>
               </div>
@@ -259,7 +261,7 @@ const VoterProfile: React.FC = () => {
                   ) : (
                     <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-xl">
                       <User className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                      <span className="text-gray-900 dark:text-white">{profile.fullName}</span>
+                      <span className="text-gray-900 dark:text-white">{user?.fullName}</span>
                     </div>
                   )}
                 </div>
@@ -280,7 +282,7 @@ const VoterProfile: React.FC = () => {
                   ) : (
                     <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-xl">
                       <Mail className="w-5 h-5 text-green-600 dark:text-green-400" />
-                      <span className="text-gray-900 dark:text-white">{profile.email}</span>
+                      <span className="text-gray-900 dark:text-white">{user?.email}</span>
                     </div>
                   )}
                 </div>
@@ -313,7 +315,7 @@ const VoterProfile: React.FC = () => {
                   <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-xl">
                     <Hash className="w-5 h-5 text-orange-600 dark:text-orange-400" />
                     <span className="text-gray-900 dark:text-white font-mono">
-                      {profile.memberId}
+                      {user?.memberId}
                     </span>
                   </div>
                 </div>
@@ -324,7 +326,7 @@ const VoterProfile: React.FC = () => {
                   </label>
                   <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-xl">
                     <Building className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                    <span className="text-gray-900 dark:text-white">{profile.organization}</span>
+                    <span className="text-gray-900 dark:text-white">{user?.organization}</span>
                   </div>
                 </div>
 
@@ -334,7 +336,7 @@ const VoterProfile: React.FC = () => {
                   </label>
                   <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-xl">
                     <Building className="w-5 h-5 text-green-600 dark:text-green-400" />
-                    <span className="text-gray-900 dark:text-white">{profile.department}</span>
+                    <span className="text-gray-900 dark:text-white">{user?.department}</span>
                   </div>
                 </div>
 

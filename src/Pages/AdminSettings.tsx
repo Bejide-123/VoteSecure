@@ -20,8 +20,10 @@ import {
   Key,
 } from "lucide-react";
 import AdminLayout from "./AdminLayout";
+import { useAuth } from "../Context/AuthContext";
 
 const AdminSettings: React.FC = () => {
+  const { user } = useAuth();
   const [systemName, setSystemName] = useState("VoteSecure");
   const [organizationName, setOrganizationName] = useState("University of Lagos");
   const [supportEmail, setSupportEmail] = useState("support@votesecure.ng");
@@ -123,7 +125,7 @@ const AdminSettings: React.FC = () => {
               </label>
               <input
                 type="text"
-                value={organizationName}
+                value={user?.organization}
                 onChange={(e) => setOrganizationName(e.target.value)}
                 className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 transition-all"
               />

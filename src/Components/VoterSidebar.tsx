@@ -234,12 +234,12 @@ console.log('🔍 Member ID:', user?.memberId);
             {isSidebarOpen ? (
               <div className="space-y-3">
                 {/* User Info Card */}
-                <div className="p-3 rounded-xl bg-gradient-to-br from-blue-50 to-green-50 dark:from-blue-950/30 dark:to-green-950/30 border border-blue-200 dark:border-blue-800">
+                <div onClick={() => {
+                  navigate("/voter/profile")
+                }} className="p-3 rounded-xl bg-gradient-to-br from-blue-50 to-green-50 dark:from-blue-950/30 dark:to-green-950/30 border border-blue-200 dark:border-blue-800">
                   <div className="flex items-center gap-3 mb-2">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-green-600 flex items-center justify-center text-white font-bold shrink-0">
-                      {(user?.fullName &&
-                        user.fullName.charAt(0).toUpperCase()) ||
-                        "V"}
+                    <div className="w-10 h-10 rounded-full  flex items-center justify-center text-white font-bold shrink-0">
+                      <img className="rounded-full" src={user?.selfieUrl} alt="user-image" />  
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
