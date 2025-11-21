@@ -16,7 +16,6 @@ import {
   Save,
   X,
 } from "lucide-react";
-import VoterLayout from "./VoterLayout";
 
 interface UserProfile {
   fullName: string;
@@ -109,7 +108,6 @@ const VoterProfile: React.FC = () => {
 
 
   return (
-    <VoterLayout>
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 p-6">
       <div className="max-w-7xl mx-auto space-y-8">
         <div className="flex items-start justify-between flex-wrap gap-4">
@@ -424,7 +422,6 @@ const VoterProfile: React.FC = () => {
         </div>
       </div>
     </div>
-    </VoterLayout>
   );
 };
 

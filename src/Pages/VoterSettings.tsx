@@ -16,7 +16,7 @@ import {
   AlertCircle,
   Save,
 } from "lucide-react";
-import VoterLayout from "./VoterLayout";
+
 
 const VoterSettings: React.FC = () => {
   const [darkMode, setDarkMode] = useState(false);
@@ -60,7 +60,6 @@ const VoterSettings: React.FC = () => {
   };
 
   return (
-      <VoterLayout>
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 p-6">
       <div className="max-w-4xl mx-auto space-y-8">
         <div className="flex items-start justify-between flex-wrap gap-4">
@@ -409,7 +408,6 @@ const VoterSettings: React.FC = () => {
         </div>
       </div>
     </div>
-      </VoterLayout>
   );
 };
 
