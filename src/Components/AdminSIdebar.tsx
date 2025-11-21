@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   LayoutDashboard,
   Vote,
@@ -21,7 +21,7 @@ import {
   Shield,
 } from "lucide-react";
 import { useAuth } from "../Context/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 // ===== MENU ITEM TYPE =====
 interface MenuItem {
@@ -44,9 +44,9 @@ interface SubMenuItem {
 const AdminSidebar: React.FC = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const [activeMenu, setActiveMenu] = useState("dashboard");
   const [expandedMenus, setExpandedMenus] = useState<string[]>(["elections"]);
 
   // ===== MENU ITEMS =====
@@ -99,7 +99,7 @@ const AdminSidebar: React.FC = () => {
       subItems: [
         {
           id: "approve-voters",
-          label: "Approve Registrations",
+          label: "Approve Voters",
           icon: <UserCheck className="w-4 h-4" />,
           path: "/admin/voters/approve",
           badge: 12,
@@ -194,8 +194,7 @@ const AdminSidebar: React.FC = () => {
   };
 
   // ===== HANDLE MENU CLICK =====
-  const handleMenuClick = (menuId: string, path?: string) => {
-    setActiveMenu(menuId);
+  const handleMenuClick = (path?: string) => {
     if (path) {
       navigate(path);
       setIsMobileOpen(false); // Close mobile menu on navigation
@@ -203,14 +202,35 @@ const AdminSidebar: React.FC = () => {
   };
 
   // Notify layout about sidebar open/close so main content can respond
-  React.useEffect(() => {
+  useEffect(() => {
     try {
-      const ev = new CustomEvent('sidebar:change', { detail: { open: isSidebarOpen } });
+      const ev = new CustomEvent("sidebar:change", {
+        detail: { open: isSidebarOpen },
+      });
       window.dispatchEvent(ev);
     } catch (err) {
       // ignore in environments that don't support CustomEvent
     }
   }, [isSidebarOpen]);
+
+  const activeMenu = menuItems
+    .flatMap((item) =>
+      item.subItems
+        ? [
+            item,
+            ...item.subItems.map((sub) => ({ ...sub, parentId: item.id })),
+          ]
+        : [item]
+    )
+    .find((item) => item.path === location.pathname);
+
+  useEffect(() => {
+    if (activeMenu && "parentId" in activeMenu && activeMenu.parentId) {
+      if (!expandedMenus.includes(activeMenu.parentId)) {
+        setExpandedMenus((prev) => [...prev, activeMenu.parentId!]);
+      }
+    }
+  }, [activeMenu, expandedMenus]);
 
   return (
     <>
@@ -250,7 +270,7 @@ const AdminSidebar: React.FC = () => {
           <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-800">
             {isSidebarOpen ? (
               <div className="flex items-center gap-3">
-                  <div className="relative">
+                <div className="relative">
                   <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-green-600 rounded-lg blur opacity-50" />
                   <div className="relative bg-gradient-to-br from-blue-600 to-green-600 p-2 rounded-lg">
                     <Vote
@@ -315,13 +335,13 @@ const AdminSidebar: React.FC = () => {
                     if (item.subItems) {
                       toggleMenu(item.id);
                     } else {
-                      handleMenuClick(item.id, item.path);
+                      handleMenuClick(item.path);
                     }
                   }}
                   className={`
                     w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200
                     ${
-                      activeMenu === item.id
+                      activeMenu?.id === item.id && !("parentId" in activeMenu)
                         ? "bg-gradient-to-r from-blue-600 to-green-600 text-white shadow-lg"
                         : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
                     }
@@ -344,7 +364,7 @@ const AdminSidebar: React.FC = () => {
                           className={`
                           px-2 py-0.5 rounded-full text-xs font-bold
                           ${
-                            activeMenu === item.id
+                            activeMenu?.id === item.id
                               ? "bg-white/20 text-white"
                               : "bg-red-500 text-white"
                           }
@@ -377,14 +397,12 @@ const AdminSidebar: React.FC = () => {
                       {item.subItems.map((subItem) => (
                         <button
                           key={subItem.id}
-                          onClick={() =>
-                            handleMenuClick(subItem.id, subItem.path)
-                          }
+                          onClick={() => handleMenuClick(subItem.path)}
                           className={`
                           w-full flex items-center justify-between px-4 py-2.5 rounded-lg transition-all duration-200 text-sm
                           ${
-                            activeMenu === subItem.id
-                              ? "bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 font-semibold"
+                            activeMenu?.id === subItem.id
+                              ? "bg-gradient-to-r from-blue-600 to-green-600 text-white shadow-lg"
                               : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50"
                           }
                         `}
