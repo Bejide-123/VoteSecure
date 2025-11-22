@@ -13,9 +13,11 @@ import {
   Sparkles,
 } from "lucide-react";
 import AdminLayout from "./AdminLayout";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "../lib/supabase";
+import { useAuth } from "../Context/AuthContext";
 
 // ===== TYPE DEFINITIONS =====
-// This defines the shape of our election data
 interface Position {
   id: string;
   title: string;
@@ -24,26 +26,21 @@ interface Position {
 }
 
 interface ElectionFormData {
-  // Step 1: Basic Info
   title: string;
   description: string;
-  electionType: "general" | "departmental" | "faculty" | "club";
-  
-  // Step 2: Timeline
-  registrationStartDate: string;
-  registrationEndDate: string;
-  votingStartDate: string;
-  votingEndDate: string;
-  
-  // Step 3: Positions
+  election_type: "general" | "departmental" | "faculty" | "club";
+  organization: string;
+  registration_start_date: string;
+  registration_end_date: string;
+  voting_start_date: string;
+  voting_end_date: string;
+  allow_voice_voting: boolean;
+  require_face_verification: boolean;
+  send_email_notifications: boolean;
+  send_sms_notifications: boolean;
+  show_live_results: boolean;
   positions: Position[];
-  
-  // Step 4: Settings
-  allowVoiceVoting: boolean;
-  requireFaceVerification: boolean;
-  sendEmailNotifications: boolean;
-  sendSMSNotifications: boolean;
-  showLiveResults: boolean;
+  status: "active" | "completed" | "archived";
 }
 
 interface FormErrors {
@@ -51,29 +48,33 @@ interface FormErrors {
 }
 
 const CreateElection: React.FC = () => {
-  // ===== STATE MANAGEMENT =====
+  const navigate = useNavigate();
+  const { user } = useAuth();
+
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<ElectionFormData>({
     title: "",
     description: "",
-    electionType: "general",
-    registrationStartDate: "",
-    registrationEndDate: "",
-    votingStartDate: "",
-    votingEndDate: "",
+    election_type: "general",
+    organization: "",
+    registration_start_date: "",
+    registration_end_date: "",
+    voting_start_date: "",
+    voting_end_date: "",
+    allow_voice_voting: false,
+    require_face_verification: true,
+    send_email_notifications: true,
+    send_sms_notifications: false,
+    show_live_results: false,
     positions: [],
-    allowVoiceVoting: false,
-    requireFaceVerification: true,
-    sendEmailNotifications: true,
-    sendSMSNotifications: false,
-    showLiveResults: false,
+    status: "draft",
   });
+
   const [errors, setErrors] = useState<FormErrors>({});
   const [isLoading, setIsLoading] = useState(false);
 
   const totalSteps = 5;
 
-  // ===== STEP CONFIGURATION =====
   const steps = [
     { number: 1, title: "Basic Info", icon: <Info className="w-4 h-4" /> },
     { number: 2, title: "Timeline", icon: <Calendar className="w-4 h-4" /> },
@@ -89,23 +90,23 @@ const CreateElection: React.FC = () => {
     if (step === 1) {
       if (!formData.title.trim()) newErrors.title = "Election title is required";
       if (!formData.description.trim()) newErrors.description = "Description is required";
+      if (!formData.organization.trim()) newErrors.organization = "Organization is required";
     }
 
     if (step === 2) {
-      if (!formData.registrationStartDate) newErrors.registrationStartDate = "Required";
-      if (!formData.registrationEndDate) newErrors.registrationEndDate = "Required";
-      if (!formData.votingStartDate) newErrors.votingStartDate = "Required";
-      if (!formData.votingEndDate) newErrors.votingEndDate = "Required";
+      if (!formData.registration_start_date) newErrors.registration_start_date = "Required";
+      if (!formData.registration_end_date) newErrors.registration_end_date = "Required";
+      if (!formData.voting_start_date) newErrors.voting_start_date = "Required";
+      if (!formData.voting_end_date) newErrors.voting_end_date = "Required";
 
-      // Validate date logic
-      if (formData.registrationEndDate < formData.registrationStartDate) {
-        newErrors.registrationEndDate = "Must be after start date";
+      if (formData.registration_end_date < formData.registration_start_date) {
+        newErrors.registration_end_date = "Must be after start date";
       }
-      if (formData.votingStartDate < formData.registrationEndDate) {
-        newErrors.votingStartDate = "Must be after registration ends";
+      if (formData.voting_start_date < formData.registration_end_date) {
+        newErrors.voting_start_date = "Must be after registration ends";
       }
-      if (formData.votingEndDate < formData.votingStartDate) {
-        newErrors.votingEndDate = "Must be after voting starts";
+      if (formData.voting_end_date < formData.voting_start_date) {
+        newErrors.voting_end_date = "Must be after voting starts";
       }
     }
 
@@ -141,7 +142,6 @@ const CreateElection: React.FC = () => {
       [name]: type === "checkbox" ? checked : value,
     }));
 
-    // Clear error for this field
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: "" }));
     }
@@ -170,9 +170,7 @@ const CreateElection: React.FC = () => {
   const handlePositionChange = (id: string, field: keyof Position, value: string | number) => {
     setFormData((prev) => ({
       ...prev,
-      positions: prev.positions.map((p) =>
-        p.id === id ? { ...p, [field]: value } : p
-      ),
+      positions: prev.positions.map((p) => (p.id === id ? { ...p, [field]: value } : p)),
     }));
   };
 
@@ -181,23 +179,40 @@ const CreateElection: React.FC = () => {
 
     setIsLoading(true);
     try {
-      // TODO: Save to Supabase
-      console.log("Creating election:", formData);
-      
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      
+      const { error } = await supabase.from("elections").insert([
+        {
+          title: formData.title,
+          description: formData.description,
+          election_type: formData.election_type,
+          organization: formData.organization,
+          registration_start_date: formData.registration_start_date,
+          registration_end_date: formData.registration_end_date,
+          voting_start_date: formData.voting_start_date,
+          voting_end_date: formData.voting_end_date,
+          allow_voice_voting: formData.allow_voice_voting,
+          require_face_verification: formData.require_face_verification,
+          send_email_notifications: formData.send_email_notifications,
+          send_sms_notifications: formData.send_sms_notifications,
+          show_live_results: formData.show_live_results,
+          positions: formData.positions,
+          status: "active",
+          created_by: user?.uid || null,
+        },
+      ]);
+
+      if (error) throw error;
+
       alert("Election created successfully!");
-      // TODO: Navigate to elections list
-    } catch (error) {
+      navigate("/admin/dashboard");
+    } catch (error: any) {
       console.error("Error creating election:", error);
-      alert("Failed to create election");
+      alert("Failed to create election: " + error.message);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // ===== RENDER FUNCTIONS FOR EACH STEP =====
+  // ===== RENDER FUNCTIONS =====
   const renderStep1 = () => (
     <div className="space-y-6">
       <div>
@@ -211,9 +226,7 @@ const CreateElection: React.FC = () => {
           onChange={handleInputChange}
           placeholder="e.g., Student Union Elections 2024"
           className={`w-full px-4 py-3 rounded-xl border ${
-            errors.title
-              ? "border-red-500"
-              : "border-gray-300 dark:border-gray-700"
+            errors.title ? "border-red-500" : "border-gray-300 dark:border-gray-700"
           } bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 transition-all`}
         />
         {errors.title && (
@@ -235,9 +248,7 @@ const CreateElection: React.FC = () => {
           rows={4}
           placeholder="Describe what this election is about..."
           className={`w-full px-4 py-3 rounded-xl border ${
-            errors.description
-              ? "border-red-500"
-              : "border-gray-300 dark:border-gray-700"
+            errors.description ? "border-red-500" : "border-gray-300 dark:border-gray-700"
           } bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 transition-all resize-none`}
         />
         {errors.description && (
@@ -250,11 +261,33 @@ const CreateElection: React.FC = () => {
 
       <div>
         <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+          Organization *
+        </label>
+        <input
+          type="text"
+          name="organization"
+          value={formData.organization}
+          onChange={handleInputChange}
+          placeholder="e.g., University of Lagos"
+          className={`w-full px-4 py-3 rounded-xl border ${
+            errors.organization ? "border-red-500" : "border-gray-300 dark:border-gray-700"
+          } bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 transition-all`}
+        />
+        {errors.organization && (
+          <p className="mt-1 text-sm text-red-500 flex items-center gap-1">
+            <AlertCircle className="w-4 h-4" />
+            {errors.organization}
+          </p>
+        )}
+      </div>
+
+      <div>
+        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
           Election Type *
         </label>
         <select
-          name="electionType"
-          value={formData.electionType}
+          name="election_type"
+          value={formData.election_type}
           onChange={handleInputChange}
           className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 transition-all"
         >
@@ -269,13 +302,11 @@ const CreateElection: React.FC = () => {
 
   const renderStep2 = () => (
     <div className="space-y-6">
-      {/* Registration Period */}
       <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-xl p-4">
         <h3 className="font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
           <Calendar className="w-5 h-5 text-blue-600 dark:text-blue-400" />
           Candidate Registration Period
         </h3>
-        
         <div className="grid md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
@@ -283,49 +314,42 @@ const CreateElection: React.FC = () => {
             </label>
             <input
               type="datetime-local"
-              name="registrationStartDate"
-              value={formData.registrationStartDate}
+              name="registration_start_date"
+              value={formData.registration_start_date}
               onChange={handleInputChange}
               className={`w-full px-4 py-3 rounded-xl border ${
-                errors.registrationStartDate
-                  ? "border-red-500"
-                  : "border-gray-300 dark:border-gray-700"
+                errors.registration_start_date ? "border-red-500" : "border-gray-300 dark:border-gray-700"
               } bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 transition-all`}
             />
-            {errors.registrationStartDate && (
-              <p className="mt-1 text-sm text-red-500">{errors.registrationStartDate}</p>
+            {errors.registration_start_date && (
+              <p className="mt-1 text-sm text-red-500">{errors.registration_start_date}</p>
             )}
           </div>
-
           <div>
             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
               End Date *
             </label>
             <input
               type="datetime-local"
-              name="registrationEndDate"
-              value={formData.registrationEndDate}
+              name="registration_end_date"
+              value={formData.registration_end_date}
               onChange={handleInputChange}
               className={`w-full px-4 py-3 rounded-xl border ${
-                errors.registrationEndDate
-                  ? "border-red-500"
-                  : "border-gray-300 dark:border-gray-700"
+                errors.registration_end_date ? "border-red-500" : "border-gray-300 dark:border-gray-700"
               } bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 transition-all`}
             />
-            {errors.registrationEndDate && (
-              <p className="mt-1 text-sm text-red-500">{errors.registrationEndDate}</p>
+            {errors.registration_end_date && (
+              <p className="mt-1 text-sm text-red-500">{errors.registration_end_date}</p>
             )}
           </div>
         </div>
       </div>
 
-      {/* Voting Period */}
       <div className="bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-xl p-4">
         <h3 className="font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
           <Clock className="w-5 h-5 text-green-600 dark:text-green-400" />
           Voting Period
         </h3>
-        
         <div className="grid md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
@@ -333,37 +357,32 @@ const CreateElection: React.FC = () => {
             </label>
             <input
               type="datetime-local"
-              name="votingStartDate"
-              value={formData.votingStartDate}
+              name="voting_start_date"
+              value={formData.voting_start_date}
               onChange={handleInputChange}
               className={`w-full px-4 py-3 rounded-xl border ${
-                errors.votingStartDate
-                  ? "border-red-500"
-                  : "border-gray-300 dark:border-gray-700"
+                errors.voting_start_date ? "border-red-500" : "border-gray-300 dark:border-gray-700"
               } bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 transition-all`}
             />
-            {errors.votingStartDate && (
-              <p className="mt-1 text-sm text-red-500">{errors.votingStartDate}</p>
+            {errors.voting_start_date && (
+              <p className="mt-1 text-sm text-red-500">{errors.voting_start_date}</p>
             )}
           </div>
-
           <div>
             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
               End Date *
             </label>
             <input
               type="datetime-local"
-              name="votingEndDate"
-              value={formData.votingEndDate}
+              name="voting_end_date"
+              value={formData.voting_end_date}
               onChange={handleInputChange}
               className={`w-full px-4 py-3 rounded-xl border ${
-                errors.votingEndDate
-                  ? "border-red-500"
-                  : "border-gray-300 dark:border-gray-700"
+                errors.voting_end_date ? "border-red-500" : "border-gray-300 dark:border-gray-700"
               } bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 transition-all`}
             />
-            {errors.votingEndDate && (
-              <p className="mt-1 text-sm text-red-500">{errors.votingEndDate}</p>
+            {errors.voting_end_date && (
+              <p className="mt-1 text-sm text-red-500">{errors.voting_end_date}</p>
             )}
           </div>
         </div>
@@ -375,9 +394,7 @@ const CreateElection: React.FC = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-bold text-gray-900 dark:text-white">
-            Election Positions
-          </h3>
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white">Election Positions</h3>
           <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
             Add the positions voters will elect (President, VP, etc.)
           </p>
@@ -400,67 +417,40 @@ const CreateElection: React.FC = () => {
 
       <div className="space-y-4">
         {formData.positions.map((position, index) => (
-          <div
-            key={position.id}
-            className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4"
-          >
+          <div key={position.id} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4">
             <div className="flex items-start justify-between mb-4">
-              <span className="text-sm font-bold text-gray-500 dark:text-gray-400">
-                Position #{index + 1}
-              </span>
-              <button
-                onClick={() => handleRemovePosition(position.id)}
-                className="text-red-500 hover:text-red-700 transition-colors"
-              >
+              <span className="text-sm font-bold text-gray-500 dark:text-gray-400">Position #{index + 1}</span>
+              <button onClick={() => handleRemovePosition(position.id)} className="text-red-500 hover:text-red-700 transition-colors">
                 <Trash2 className="w-5 h-5" />
               </button>
             </div>
-
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                  Position Title
-                </label>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Position Title</label>
                 <input
                   type="text"
                   value={position.title}
-                  onChange={(e) =>
-                    handlePositionChange(position.id, "title", e.target.value)
-                  }
+                  onChange={(e) => handlePositionChange(position.id, "title", e.target.value)}
                   placeholder="e.g., President"
                   className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 transition-all"
                 />
               </div>
-
               <div>
-                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                  Description
-                </label>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Description</label>
                 <input
                   type="text"
                   value={position.description}
-                  onChange={(e) =>
-                    handlePositionChange(position.id, "description", e.target.value)
-                  }
+                  onChange={(e) => handlePositionChange(position.id, "description", e.target.value)}
                   placeholder="Brief description of this position"
                   className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 transition-all"
                 />
               </div>
-
               <div>
-                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                  Max Candidates (Optional)
-                </label>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Max Candidates (Optional)</label>
                 <input
                   type="number"
                   value={position.maxCandidates || ""}
-                  onChange={(e) =>
-                    handlePositionChange(
-                      position.id,
-                      "maxCandidates",
-                      parseInt(e.target.value) || 0
-                    )
-                  }
+                  onChange={(e) => handlePositionChange(position.id, "maxCandidates", parseInt(e.target.value) || 0)}
                   placeholder="Leave empty for unlimited"
                   min="1"
                   className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 transition-all"
@@ -469,7 +459,6 @@ const CreateElection: React.FC = () => {
             </div>
           </div>
         ))}
-
         {formData.positions.length === 0 && (
           <div className="text-center py-12 text-gray-500 dark:text-gray-400">
             <Plus className="w-12 h-12 mx-auto mb-4 opacity-50" />
@@ -482,99 +471,67 @@ const CreateElection: React.FC = () => {
 
   const renderStep4 = () => (
     <div className="space-y-6">
-      <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
-        Election Settings
-      </h3>
-
+      <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Election Settings</h3>
       <div className="space-y-4">
-        {/* Security Settings */}
         <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-xl p-4">
-          <h4 className="font-bold text-gray-900 dark:text-white mb-3">
-            Security Settings
-          </h4>
-          
+          <h4 className="font-bold text-gray-900 dark:text-white mb-3">Security Settings</h4>
           <label className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg cursor-pointer hover:shadow-md transition-all">
             <div>
-              <p className="font-semibold text-gray-900 dark:text-white">
-                Require Face Verification
-              </p>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Voters must verify their face before voting
-              </p>
+              <p className="font-semibold text-gray-900 dark:text-white">Require Face Verification</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Voters must verify their face before voting</p>
             </div>
             <input
               type="checkbox"
-              name="requireFaceVerification"
-              checked={formData.requireFaceVerification}
+              name="require_face_verification"
+              checked={formData.require_face_verification}
               onChange={handleInputChange}
               className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
             />
           </label>
         </div>
 
-        {/* Accessibility */}
         <div className="bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800 rounded-xl p-4">
-          <h4 className="font-bold text-gray-900 dark:text-white mb-3">
-            Accessibility
-          </h4>
-          
+          <h4 className="font-bold text-gray-900 dark:text-white mb-3">Accessibility</h4>
           <label className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg cursor-pointer hover:shadow-md transition-all">
             <div>
-              <p className="font-semibold text-gray-900 dark:text-white">
-                Enable Voice Voting
-              </p>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Allow visually impaired voters to vote using voice commands
-              </p>
+              <p className="font-semibold text-gray-900 dark:text-white">Enable Voice Voting</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Allow visually impaired voters to vote using voice commands</p>
             </div>
             <input
               type="checkbox"
-              name="allowVoiceVoting"
-              checked={formData.allowVoiceVoting}
+              name="allow_voice_voting"
+              checked={formData.allow_voice_voting}
               onChange={handleInputChange}
               className="w-5 h-5 text-purple-600 rounded focus:ring-2 focus:ring-purple-500"
             />
           </label>
         </div>
 
-        {/* Notifications */}
         <div className="bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-xl p-4">
-          <h4 className="font-bold text-gray-900 dark:text-white mb-3">
-            Notifications
-          </h4>
-          
+          <h4 className="font-bold text-gray-900 dark:text-white mb-3">Notifications</h4>
           <div className="space-y-3">
             <label className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg cursor-pointer hover:shadow-md transition-all">
               <div>
-                <p className="font-semibold text-gray-900 dark:text-white">
-                  Email Notifications
-                </p>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Send election updates via email
-                </p>
+                <p className="font-semibold text-gray-900 dark:text-white">Email Notifications</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Send election updates via email</p>
               </div>
               <input
                 type="checkbox"
-                name="sendEmailNotifications"
-                checked={formData.sendEmailNotifications}
+                name="send_email_notifications"
+                checked={formData.send_email_notifications}
                 onChange={handleInputChange}
                 className="w-5 h-5 text-green-600 rounded focus:ring-2 focus:ring-green-500"
               />
             </label>
-
             <label className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg cursor-pointer hover:shadow-md transition-all">
               <div>
-                <p className="font-semibold text-gray-900 dark:text-white">
-                  SMS Notifications
-                </p>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Send SMS reminders (additional cost)
-                </p>
+                <p className="font-semibold text-gray-900 dark:text-white">SMS Notifications</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Send SMS reminders (additional cost)</p>
               </div>
               <input
                 type="checkbox"
-                name="sendSMSNotifications"
-                checked={formData.sendSMSNotifications}
+                name="send_sms_notifications"
+                checked={formData.send_sms_notifications}
                 onChange={handleInputChange}
                 className="w-5 h-5 text-green-600 rounded focus:ring-2 focus:ring-green-500"
               />
@@ -582,25 +539,17 @@ const CreateElection: React.FC = () => {
           </div>
         </div>
 
-        {/* Results */}
         <div className="bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-800 rounded-xl p-4">
-          <h4 className="font-bold text-gray-900 dark:text-white mb-3">
-            Results Display
-          </h4>
-          
+          <h4 className="font-bold text-gray-900 dark:text-white mb-3">Results Display</h4>
           <label className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg cursor-pointer hover:shadow-md transition-all">
             <div>
-              <p className="font-semibold text-gray-900 dark:text-white">
-                Show Live Results
-              </p>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Display real-time vote counts (visible to all)
-              </p>
+              <p className="font-semibold text-gray-900 dark:text-white">Show Live Results</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Display real-time vote counts (visible to all)</p>
             </div>
             <input
               type="checkbox"
-              name="showLiveResults"
-              checked={formData.showLiveResults}
+              name="show_live_results"
+              checked={formData.show_live_results}
               onChange={handleInputChange}
               className="w-5 h-5 text-orange-600 rounded focus:ring-2 focus:ring-orange-500"
             />
@@ -616,15 +565,10 @@ const CreateElection: React.FC = () => {
         <div className="inline-flex p-4 bg-gradient-to-r from-blue-100 to-green-100 dark:from-blue-900/30 dark:to-green-900/30 rounded-full mb-4">
           <Sparkles className="w-8 h-8 text-blue-600 dark:text-blue-400" />
         </div>
-        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-          Review Your Election
-        </h3>
-        <p className="text-gray-600 dark:text-gray-400">
-          Please review all details before publishing
-        </p>
+        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Review Your Election</h3>
+        <p className="text-gray-600 dark:text-gray-400">Please review all details before publishing</p>
       </div>
 
-      {/* Basic Info */}
       <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6">
         <h4 className="font-bold text-gray-900 dark:text-white mb-4">Basic Information</h4>
         <dl className="space-y-3">
@@ -637,71 +581,68 @@ const CreateElection: React.FC = () => {
             <dd className="text-gray-900 dark:text-white">{formData.description}</dd>
           </div>
           <div>
+            <dt className="text-sm text-gray-600 dark:text-gray-400">Organization</dt>
+            <dd className="text-gray-900 dark:text-white">{formData.organization}</dd>
+          </div>
+          <div>
             <dt className="text-sm text-gray-600 dark:text-gray-400">Type</dt>
-            <dd className="text-gray-900 dark:text-white capitalize">{formData.electionType}</dd>
+            <dd className="text-gray-900 dark:text-white capitalize">{formData.election_type}</dd>
           </div>
         </dl>
       </div>
 
-      {/* Timeline */}
       <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6">
         <h4 className="font-bold text-gray-900 dark:text-white mb-4">Timeline</h4>
         <div className="grid md:grid-cols-2 gap-4">
           <div>
             <dt className="text-sm text-gray-600 dark:text-gray-400 mb-1">Registration Period</dt>
             <dd className="text-gray-900 dark:text-white">
-              {new Date(formData.registrationStartDate).toLocaleString()} - {new Date(formData.registrationEndDate).toLocaleString()}
+              {new Date(formData.registration_start_date).toLocaleString()} - {new Date(formData.registration_end_date).toLocaleString()}
             </dd>
           </div>
           <div>
             <dt className="text-sm text-gray-600 dark:text-gray-400 mb-1">Voting Period</dt>
             <dd className="text-gray-900 dark:text-white">
-              {new Date(formData.votingStartDate).toLocaleString()} - {new Date(formData.votingEndDate).toLocaleString()}
+              {new Date(formData.voting_start_date).toLocaleString()} - {new Date(formData.voting_end_date).toLocaleString()}
             </dd>
           </div>
         </div>
       </div>
 
-      {/* Positions */}
       <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6">
-        <h4 className="font-bold text-gray-900 dark:text-white mb-4">
-          Positions ({formData.positions.length})
-        </h4>
+        <h4 className="font-bold text-gray-900 dark:text-white mb-4">Positions ({formData.positions.length})</h4>
         <ul className="space-y-2">
           {formData.positions.map((position) => (
             <li key={position.id} className="flex items-center gap-2 text-gray-900 dark:text-white">
               <CheckCircle2 className="w-4 h-4 text-green-600 dark:text-green-400" />
               <span className="font-semibold">{position.title}</span>
-              {position.description && (
-                <span className="text-gray-600 dark:text-gray-400">- {position.description}</span>
-              )}
+              {position.description && <span className="text-gray-600 dark:text-gray-400">- {position.description}</span>}
             </li>
           ))}
         </ul>
       </div>
 
-      {/* Settings Summary */}
       <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6">
         <h4 className="font-bold text-gray-900 dark:text-white mb-4">Settings</h4>
         <div className="grid md:grid-cols-2 gap-4">
           <div className="flex items-center gap-2">
-            <div className={`w-2 h-2 rounded-full ${formData.requireFaceVerification ? 'bg-green-500' : 'bg-gray-300'}`} />
+            <div className={`w-2 h-2 rounded-full ${formData.require_face_verification ? "bg-green-500" : "bg-gray-300"}`} />
             <span className="text-sm text-gray-900 dark:text-white">Face Verification</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className={`w-2 h-2 rounded-full ${formData.allowVoiceVoting ? 'bg-green-500' : 'bg-gray-300'}`} />
+            <div className={`w-2 h-2 rounded-full ${formData.allow_voice_voting ? "bg-green-500" : "bg-gray-300"}`} />
             <span className="text-sm text-gray-900 dark:text-white">Voice Voting</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className={`w-2 h-2 rounded-full ${formData.sendEmailNotifications ? 'bg-green-500' : 'bg-gray-300'}`} />
+            <div className={`w-2 h-2 rounded-full ${formData.send_email_notifications ? "bg-green-500" : "bg-gray-300"}`} />
             <span className="text-sm text-gray-900 dark:text-white">Email Notifications</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className={`w-2 h-2 rounded-full ${formData.sendSMSNotifications ? 'bg-green-500' : 'bg-gray-300'}`} />
+            <div className={`w-2 h-2 rounded-full ${formData.send_sms_notifications ? "bg-green-500" : "bg-gray-300"}`} />
             <span className="text-sm text-gray-900 dark:text-white">SMS Notifications</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className={`w-2 h-2 rounded-full ${formData.showLiveResults ? 'bg-green-500' : 'bg-gray-300'}`} />
+            <div className={`w-2 h-2 rounded-full ${formData.show_live_results ? "bg-green-500" : "bg-gray-300"}`} />
             <span className="text-sm text-gray-900 dark:text-white">Live Results</span>
           </div>
         </div>
@@ -712,147 +653,106 @@ const CreateElection: React.FC = () => {
   // ===== MAIN RENDER =====
   return (
     <AdminLayout>
-    <div className="max-w-5xl mx-auto space-y-8">
-      {/* ===== PAGE HEADER ===== */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-          Create New Election
-        </h1>
-        <p className="text-gray-600 dark:text-gray-400">
-          Set up a new election in just a few steps
-        </p>
-      </div>
+      <div className="max-w-5xl mx-auto space-y-8">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Create New Election</h1>
+          <p className="text-gray-600 dark:text-gray-400">Set up a new election in just a few steps</p>
+        </div>
 
-      {/* ===== PROGRESS STEPPER ===== */}
-      <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6">
-        <div className="flex items-center justify-between">
-          {steps.map((step, index) => (
-            <React.Fragment key={step.number}>
-              {/* Step Circle */}
-              <div className="flex flex-col items-center flex-1">
-                <div
-                  className={`
-                    w-12 h-12 rounded-full flex items-center justify-center font-bold transition-all duration-300
-                    ${
+        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6">
+          <div className="flex items-center justify-between">
+            {steps.map((step, index) => (
+              <React.Fragment key={step.number}>
+                <div className="flex flex-col items-center flex-1">
+                  <div
+                    className={`w-12 h-12 rounded-full flex items-center justify-center font-bold transition-all duration-300 ${
                       currentStep > step.number
                         ? "bg-gradient-to-r from-blue-600 to-green-600 text-white"
                         : currentStep === step.number
                         ? "bg-gradient-to-r from-blue-600 to-green-600 text-white ring-4 ring-blue-200 dark:ring-blue-900"
                         : "bg-gray-200 dark:bg-gray-800 text-gray-500 dark:text-gray-400"
-                    }
-                  `}
-                >
-                  {currentStep > step.number ? (
-                    <CheckCircle2 className="w-6 h-6" />
-                  ) : (
-                    step.icon
-                  )}
+                    }`}
+                  >
+                    {currentStep > step.number ? <CheckCircle2 className="w-6 h-6" /> : step.icon}
+                  </div>
+                  <span
+                    className={`text-xs font-semibold mt-2 text-center ${
+                      currentStep >= step.number ? "text-gray-900 dark:text-white" : "text-gray-500 dark:text-gray-400"
+                    }`}
+                  >
+                    {step.title}
+                  </span>
                 </div>
-                <span
-                  className={`
-                    text-xs font-semibold mt-2 text-center
-                    ${
-                      currentStep >= step.number
-                        ? "text-gray-900 dark:text-white"
-                        : "text-gray-500 dark:text-gray-400"
-                    }
-                  `}
-                >
-                  {step.title}
-                </span>
-              </div>
-
-              {/* Connecting Line */}
-              {index < steps.length - 1 && (
-                <div
-                  className={`
-                    h-1 flex-1 mx-2 rounded transition-all duration-300
-                    ${
-                      currentStep > step.number
-                        ? "bg-gradient-to-r from-blue-600 to-green-600"
-                        : "bg-gray-200 dark:bg-gray-800"
-                    }
-                  `}
-                />
-              )}
-            </React.Fragment>
-          ))}
+                {index < steps.length - 1 && (
+                  <div
+                    className={`h-1 flex-1 mx-2 rounded transition-all duration-300 ${
+                      currentStep > step.number ? "bg-gradient-to-r from-blue-600 to-green-600" : "bg-gray-200 dark:bg-gray-800"
+                    }`}
+                  />
+                )}
+              </React.Fragment>
+            ))}
+          </div>
         </div>
-      </div>
 
-      {/* ===== FORM CONTENT ===== */}
-      <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 md:p-8">
-        {currentStep === 1 && renderStep1()}
-        {currentStep === 2 && renderStep2()}
-        {currentStep === 3 && renderStep3()}
-        {currentStep === 4 && renderStep4()}
-        {currentStep === 5 && renderStep5()}
-      </div>
+        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 md:p-8">
+          {currentStep === 1 && renderStep1()}
+          {currentStep === 2 && renderStep2()}
+          {currentStep === 3 && renderStep3()}
+          {currentStep === 4 && renderStep4()}
+          {currentStep === 5 && renderStep5()}
+        </div>
 
-      {/* ===== NAVIGATION BUTTONS ===== */}
-      <div className="flex items-center justify-between gap-4">
-        {/* Back Button */}
-        <button
-          onClick={handleBack}
-          disabled={currentStep === 1}
-          className={`
-            flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all
-            ${
+        <div className="flex items-center justify-between gap-4">
+          <button
+            onClick={handleBack}
+            disabled={currentStep === 1}
+            className={`flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all ${
               currentStep === 1
                 ? "bg-gray-100 dark:bg-gray-800 text-gray-400 cursor-not-allowed"
                 : "bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-blue-500 dark:hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400"
-            }
-          `}
-        >
-          <ChevronLeft className="w-5 h-5" />
-          Back
-        </button>
-
-        {/* Save Draft Button */}
-        <button
-          className="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold border-2 border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-blue-500 dark:hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400 transition-all"
-        >
-          <Save className="w-5 h-5" />
-          Save Draft
-        </button>
-
-        {/* Next/Submit Button */}
-        {currentStep < totalSteps ? (
-          <button
-            onClick={handleNext}
-            className="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold bg-gradient-to-r from-blue-600 to-green-600 text-white hover:shadow-xl hover:scale-105 transition-all"
+            }`}
           >
-            Next
-            <ChevronRight className="w-5 h-5" />
+            <ChevronLeft className="w-5 h-5" />
+            Back
           </button>
-        ) : (
-          <button
-            onClick={handleSubmit}
-            disabled={isLoading}
-            className={`
-              flex items-center gap-2 px-8 py-3 rounded-xl font-semibold transition-all
-              ${
-                isLoading
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-gradient-to-r from-blue-600 to-green-600 text-white hover:shadow-xl hover:scale-105"
-              }
-            `}
-          >
-            {isLoading ? (
-              <>
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                Creating...
-              </>
-            ) : (
-              <>
-                <Sparkles className="w-5 h-5" />
-                Publish Election
-              </>
-            )}
+
+          <button className="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold border-2 border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-blue-500 dark:hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400 transition-all">
+            <Save className="w-5 h-5" />
+            Save Draft
           </button>
-        )}
+
+          {currentStep < totalSteps ? (
+            <button
+              onClick={handleNext}
+              className="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold bg-gradient-to-r from-blue-600 to-green-600 text-white hover:shadow-xl hover:scale-105 transition-all"
+            >
+              Next
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          ) : (
+            <button
+              onClick={handleSubmit}
+              disabled={isLoading}
+              className={`flex items-center gap-2 px-8 py-3 rounded-xl font-semibold transition-all ${
+                isLoading ? "bg-gray-400 cursor-not-allowed" : "bg-gradient-to-r from-blue-600 to-green-600 text-white hover:shadow-xl hover:scale-105"
+              }`}
+            >
+              {isLoading ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-5 h-5" />
+                  Publish Election
+                </>
+              )}
+            </button>
+          )}
+        </div>
       </div>
-    </div>
     </AdminLayout>
   );
 };
