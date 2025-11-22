@@ -67,7 +67,7 @@ const CreateElection: React.FC = () => {
     send_sms_notifications: false,
     show_live_results: false,
     positions: [],
-    status: "draft",
+    status: "active",
   });
 
   const [errors, setErrors] = useState<FormErrors>({});
