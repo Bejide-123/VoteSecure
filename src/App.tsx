@@ -27,6 +27,7 @@ import Demographics from "./Pages/Demographics";
 import AdminSettings from "./Pages/AdminSettings";
 import VoterSettings from "./Pages/VoterSettings";
 import VoterProfile from "./Pages/VoterProfile";
+import ApplyForCandidacy from "./Pages/ApplicationForCandidacy";
 
 const App = () => {
   return (
@@ -212,6 +213,16 @@ const App = () => {
             <ProtectedRoute>
               <VoterLayout>
                 <VoterProfile />
+              </VoterLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/voter/applications"
+          element={
+            <ProtectedRoute>
+              <VoterLayout>
+                <ApplyForCandidacy />
               </VoterLayout>
             </ProtectedRoute>
           }

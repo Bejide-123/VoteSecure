@@ -354,7 +354,7 @@ const AllElectionsPage: React.FC = () => {
                     {election.status === 'upcoming' && (
                       isApplicationOpen(election.application_start_date, election.application_end_date) ? (
                         <button
-                          onClick={() => navigate(`/voter/elections/${election.id}`)}
+                          onClick={() => navigate(`/voter/applications`)}
                           className="w-full bg-gradient-to-r from-teal-500 to-cyan-500 text-white py-3 px-4 sm:px-6 rounded-xl font-bold hover:shadow-xl hover:scale-105 transition-all duration-200 flex items-center justify-center gap-2"
                         >
                           <Award className="w-5 h-5" />

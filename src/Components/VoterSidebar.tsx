@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Home, Vote, History, User, LogOut, Menu, X, Settings2 } from "lucide-react";
+import { Home, Vote, History, User, LogOut, Menu, X, Settings2, PanelsTopLeft} from "lucide-react";
 import { useLocation } from 'react-router-dom';
 import { useAuth } from "../Context/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -30,38 +30,44 @@ console.log('🔍 Member ID:', user?.memberId);
 
   // ===== MENU ITEMS =====
   const menuItems: MenuItem[] = [
-    {
-      id: "dashboard",
-      label: "Dashboard",
-      icon: <Home className="w-5 h-5" />,
-      path: "/voter/dashboard",
-    },
-    {
-      id: "elections",
-      label: "Elections",
-      icon: <Vote className="w-5 h-5" />,
-      path: "/voter/elections",
-      badge: 3, // Number of active elections
-    },
-    {
-      id: "my-votes",
-      label: "My Votes",
-      icon: <History className="w-5 h-5" />,
-      path: "/voter/my-votes",
-    },
-    {
-      id: "profile",
-      label: "Profile",
-      icon: <User className="w-5 h-5" />,
-      path: "/voter/profile",
-    },
-    {
-      id:"settings",
-      label: "user-settings",
-      icon: <Settings2 className="w-5 h-5" />,
-      path: "/voter/settings"
-    }
-  ];
+  {
+    id: "dashboard",
+    label: "Dashboard",
+    icon: <Home className="w-5 h-5" />,
+    path: "/voter/dashboard",
+  },
+  {
+    id: "elections",
+    label: "Elections",
+    icon: <Vote className="w-5 h-5" />,
+    path: "/voter/elections",
+    badge: 3,
+  },
+  {
+    id: "applications",
+    label: "Applications",
+    icon: <PanelsTopLeft className="w-5 h-5" />,
+    path: "/voter/applications",
+  },
+  {
+    id: "my-votes",
+    label: "My Votes",
+    icon: <History className="w-5 h-5" />,
+    path: "/voter/my-votes",
+  },
+  {
+    id: "profile",
+    label: "Profile",
+    icon: <User className="w-5 h-5" />,
+    path: "/voter/profile",
+  },
+  {
+    id: "settings",
+    label: "User Settings",
+    icon: <Settings2 className="w-5 h-5" />,
+    path: "/voter/settings",
+  }
+];
 
   // ===== HANDLE MENU CLICK =====
   const handleMenuClick = (menuId: string, path: string) => {

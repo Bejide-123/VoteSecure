@@ -16,6 +16,8 @@ interface Election {
   description: string;
   election_type: "general" | "departmental" | "faculty" | "club";
   organization: string;
+  application_start_date: string;
+  application_end_date: string;
   registration_start_date: string;
   registration_end_date: string;
   voting_start_date: string;
@@ -26,6 +28,7 @@ interface Election {
   send_sms_notifications: boolean;
   show_live_results: boolean;
   positions: Position[];
+  voters: number; // Array of voter IDs
   status: "active" | "completed" | "archived";
   created_at?: string; // optional
 }

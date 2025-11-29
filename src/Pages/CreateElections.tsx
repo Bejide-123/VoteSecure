@@ -212,7 +212,7 @@ const CreateElection: React.FC = () => {
           show_live_results: formData.show_live_results,
           positions: formData.positions,
           status: "active",
-          created_by: user?.memberId || null,
+          created_by: user?.uid || null,
         },
       ]);
 
