@@ -26,6 +26,8 @@ interface Election {
   timeLeft: string;
   status: 'active' | 'upcoming' | 'completed';
   voted: boolean;
+  application_start_date?: string;
+  application_end_date?: string;
 }
 
 const AllElectionsPage: React.FC = () => {
@@ -81,7 +83,9 @@ const AllElectionsPage: React.FC = () => {
       timeLeft: 'Starts in 15 days',
       status: 'upcoming',
       voted: false,
-      voters: 0
+      voters: 0,
+      application_start_date: '2025-11-20T00:00:00',
+      application_end_date: '2025-11-30T23:59:59',
     },
     {
       id: '5',
@@ -92,7 +96,9 @@ const AllElectionsPage: React.FC = () => {
       timeLeft: 'Starts in 10 days',
       status: 'upcoming',
       voted: false,
-      voters: 0
+      voters: 0,
+      application_start_date: '2025-11-28T00:00:00',
+      application_end_date: '2025-12-10T23:59:59',
     },
     
     // Completed Elections
@@ -146,6 +152,14 @@ const AllElectionsPage: React.FC = () => {
     upcoming: allElections.filter(e => e.status === 'upcoming').length,
     completed: allElections.filter(e => e.status === 'completed').length,
     participated: allElections.filter(e => e.voted).length
+  };
+
+  const isApplicationOpen = (startDate?: string, endDate?: string): boolean => {
+    if (!startDate || !endDate) return false;
+    const now = new Date();
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    return now >= start && now <= end;
   };
 
   return (
@@ -338,13 +352,23 @@ const AllElectionsPage: React.FC = () => {
                     )}
 
                     {election.status === 'upcoming' && (
-                      <button 
-                        disabled
-                        className="w-full bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 py-3 rounded-xl font-bold cursor-not-allowed flex items-center justify-center gap-2"
-                      >
-                        <Clock className="w-5 h-5" />
-                        Opens Soon
-                      </button>
+                      isApplicationOpen(election.application_start_date, election.application_end_date) ? (
+                        <button
+                          onClick={() => navigate(`/voter/elections/${election.id}`)}
+                          className="w-full bg-gradient-to-r from-teal-500 to-cyan-500 text-white py-3 px-4 sm:px-6 rounded-xl font-bold hover:shadow-xl hover:scale-105 transition-all duration-200 flex items-center justify-center gap-2"
+                        >
+                          <Award className="w-5 h-5" />
+                          <span className="truncate">Apply Now</span>
+                        </button>
+                      ) : (
+                        <button 
+                          disabled
+                          className="w-full bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 py-3 rounded-xl font-bold cursor-not-allowed flex items-center justify-center gap-2"
+                        >
+                          <Clock className="w-5 h-5" />
+                          Opens Soon
+                        </button>
+                      )
                     )}
 
                     {election.status === 'completed' && election.voted && (

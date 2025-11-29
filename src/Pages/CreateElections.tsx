@@ -30,6 +30,8 @@ interface ElectionFormData {
   description: string;
   election_type: "general" | "departmental" | "faculty" | "club";
   organization: string;
+  application_start_date: string;
+  application_end_date: string;
   registration_start_date: string;
   registration_end_date: string;
   voting_start_date: string;
@@ -41,6 +43,7 @@ interface ElectionFormData {
   show_live_results: boolean;
   positions: Position[];
   status: "active" | "completed" | "archived";
+  created_by: string;
 }
 
 interface FormErrors {
@@ -57,6 +60,8 @@ const CreateElection: React.FC = () => {
     description: "",
     election_type: "general",
     organization: "",
+    application_start_date: "",
+    application_end_date: "",
     registration_start_date: "",
     registration_end_date: "",
     voting_start_date: "",
@@ -68,6 +73,7 @@ const CreateElection: React.FC = () => {
     show_live_results: false,
     positions: [],
     status: "active",
+    created_by: "",
   });
 
   const [errors, setErrors] = useState<FormErrors>({});
@@ -94,11 +100,19 @@ const CreateElection: React.FC = () => {
     }
 
     if (step === 2) {
+      if (!formData.application_start_date) newErrors.application_start_date = "Required";
+      if (!formData.application_end_date) newErrors.application_end_date = "Required";
       if (!formData.registration_start_date) newErrors.registration_start_date = "Required";
       if (!formData.registration_end_date) newErrors.registration_end_date = "Required";
       if (!formData.voting_start_date) newErrors.voting_start_date = "Required";
       if (!formData.voting_end_date) newErrors.voting_end_date = "Required";
 
+      if (formData.application_end_date < formData.application_start_date) {
+        newErrors.application_end_date = "Must be after start date";
+      }
+      if (formData.registration_start_date < formData.application_end_date) {
+        newErrors.registration_start_date = "Must be after application ends";
+      }
       if (formData.registration_end_date < formData.registration_start_date) {
         newErrors.registration_end_date = "Must be after start date";
       }
@@ -185,6 +199,8 @@ const CreateElection: React.FC = () => {
           description: formData.description,
           election_type: formData.election_type,
           organization: formData.organization,
+          application_start_date: formData.application_start_date,
+          application_end_date: formData.application_end_date,
           registration_start_date: formData.registration_start_date,
           registration_end_date: formData.registration_end_date,
           voting_start_date: formData.voting_start_date,
@@ -196,7 +212,7 @@ const CreateElection: React.FC = () => {
           show_live_results: formData.show_live_results,
           positions: formData.positions,
           status: "active",
-          created_by: user?.uid || null,
+          created_by: user?.memberId || null,
         },
       ]);
 
@@ -305,7 +321,49 @@ const CreateElection: React.FC = () => {
       <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-xl p-4">
         <h3 className="font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
           <Calendar className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-          Candidate Registration Period
+          Candidate Application Period
+        </h3>
+        <div className="grid md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              Start Date *
+            </label>
+            <input
+              type="datetime-local"
+              name="application_start_date"
+              value={formData.application_start_date}
+              onChange={handleInputChange}
+              className={`w-full px-4 py-3 rounded-xl border ${
+                errors.application_start_date ? "border-red-500" : "border-gray-300 dark:border-gray-700"
+              } bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 transition-all`}
+            />
+            {errors.application_start_date && (
+              <p className="mt-1 text-sm text-red-500">{errors.application_start_date}</p>
+            )}
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              End Date *
+            </label>
+            <input
+              type="datetime-local"
+              name="application_end_date"
+              value={formData.application_end_date}
+              onChange={handleInputChange}
+              className={`w-full px-4 py-3 rounded-xl border ${
+                errors.application_end_date ? "border-red-500" : "border-gray-300 dark:border-gray-700"
+              } bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 transition-all`}
+            />
+            {errors.application_end_date && (
+              <p className="mt-1 text-sm text-red-500">{errors.application_end_date}</p>
+            )}
+          </div>
+        </div>
+      </div>
+      <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-xl p-4">
+        <h3 className="font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+          <Calendar className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+          Voter Registration Period
         </h3>
         <div className="grid md:grid-cols-2 gap-4">
           <div>
@@ -594,6 +652,12 @@ const CreateElection: React.FC = () => {
       <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6">
         <h4 className="font-bold text-gray-900 dark:text-white mb-4">Timeline</h4>
         <div className="grid md:grid-cols-2 gap-4">
+          <div>
+            <dt className="text-sm text-gray-600 dark:text-gray-400 mb-1">Application Period</dt>
+            <dd className="text-gray-900 dark:text-white">
+              {new Date(formData.application_start_date).toLocaleString()} - {new Date(formData.application_end_date).toLocaleString()}
+            </dd>
+          </div>
           <div>
             <dt className="text-sm text-gray-600 dark:text-gray-400 mb-1">Registration Period</dt>
             <dd className="text-gray-900 dark:text-white">

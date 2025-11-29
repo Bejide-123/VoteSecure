@@ -167,7 +167,7 @@ const AdminDashboard: React.FC = () => {
               </div>
             </div>
 
-            <button className="group relative">
+            <button onClick={() => navigate("/admin/elections/create")} className="group relative">
               <div className="absolute -inset-0.5 bg-linear-to-r from-blue-600 to-green-600 rounded-xl blur opacity-40 group-hover:opacity-70 transition" />
               <div className="relative bg-linear-to-r from-blue-600 to-green-600 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 hover:shadow-xl transition-all">
                 <Vote className="w-5 h-5" />
@@ -400,7 +400,7 @@ const AdminDashboard: React.FC = () => {
             </div>
 
             {/* View All Button */}
-            <button className="w-full mt-4 px-4 py-2 rounded-xl border-2 border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-300 font-semibold hover:border-blue-500 dark:hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-200">
+            <button onClick={() => navigate("/admin/candidates/approve")} className="w-full mt-4 px-4 py-2 rounded-xl border-2 border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-300 font-semibold hover:border-blue-500 dark:hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-200">
               View All Approvals
             </button>
           </div>
@@ -413,7 +413,7 @@ const AdminDashboard: React.FC = () => {
           Quick Actions
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <button className="group relative">
+          <button onClick={() => navigate("/admin/elections/create")} className="group relative">
             <div className="absolute -inset-0.5 bg-linear-to-r from-blue-600 to-green-600 rounded-xl blur opacity-40 group-hover:opacity-70 transition" />
             <div className="relative bg-white dark:bg-gray-900 p-4 rounded-xl border border-gray-200 dark:border-gray-800 hover:shadow-xl transition-all duration-200 text-left">
               <Vote className="w-8 h-8 text-blue-600 dark:text-blue-400 mb-2" />
@@ -439,7 +439,7 @@ const AdminDashboard: React.FC = () => {
             </div>
           </button>
 
-          <button className="group relative">
+          <button onClick={() => navigate("/admin/analytics/turnout")} className="group relative">
             <div className="absolute -inset-0.5 bg-linear-to-r from-orange-600 to-red-600 rounded-xl blur opacity-40 group-hover:opacity-70 transition" />
             <div className="relative bg-white dark:bg-gray-900 p-4 rounded-xl border border-gray-200 dark:border-gray-800 hover:shadow-xl transition-all duration-200 text-left">
               <BarChart3 className="w-8 h-8 text-orange-600 dark:text-orange-400 mb-2" />
