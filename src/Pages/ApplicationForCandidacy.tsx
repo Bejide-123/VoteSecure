@@ -163,7 +163,7 @@ const upcomingElections = elections
 
     setIsSubmitting(true);
     try {
-      const { error } = await supabase.from("candidates").insert([
+      const { error } = await supabase.from("applications").insert([
         {
           election_id: selectedElection.id,
           position_title: selectedPosition?.name,
