@@ -204,7 +204,7 @@ const MonitorElection: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-green-50">
         <RefreshCw className="w-8 h-8 animate-spin text-blue-600" />
       </div>
     );
@@ -212,7 +212,7 @@ const MonitorElection: React.FC = () => {
 
   return (
     <AdminLayout>
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
@@ -224,7 +224,7 @@ const MonitorElection: React.FC = () => {
             </button>
             <div className="flex-1">
               <div className="flex flex-wrap items-center gap-3">
-                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-br from-blue-400 to-green-400 bg-clip-text text-transparent">
                   {election?.title}
                 </h1>
                 <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full shadow-lg">
@@ -264,7 +264,7 @@ const MonitorElection: React.FC = () => {
               </div>
               <div className="min-w-0">
                 <p className="text-xs sm:text-sm text-gray-600 font-semibold mb-1">Total Votes</p>
-                <p className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent truncate">
+                <p className="text-2xl sm:text-3xl font-bold bg-gradient-to-br from-blue-400 to-green-400 bg-clip-text text-transparent truncate">
                   {stats.totalVotes.toLocaleString()}
                 </p>
               </div>
@@ -409,7 +409,7 @@ const MonitorElection: React.FC = () => {
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 mb-6">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-purple-100 rounded-lg">
-                  <Activity className="w-5 h-5 text-purple-600" />
+                  <Activity className="w-5 h-5 text-green-600" />
                 </div>
                 <h3 className="text-lg sm:text-xl font-bold text-gray-900">Live Vote Activity</h3>
               </div>
@@ -418,7 +418,7 @@ const MonitorElection: React.FC = () => {
                   onClick={() => setSelectedFilter("all")}
                   className={`px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex-1 sm:flex-initial ${
                     selectedFilter === "all"
-                      ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md"
+                      ? "bg-gradient-to-br from-blue-400 to-green-400 text-white shadow-md"
                       : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                   }`}
                 >
@@ -548,12 +548,12 @@ const MonitorElection: React.FC = () => {
               <div key={idx} className="bg-gradient-to-br from-gray-50 to-blue-50 p-6 rounded-2xl border border-gray-200 shadow-sm">
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center gap-3">
-                    <div className="p-3 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl shadow-lg">
+                    <div className="p-3 bg-gradient-to-br from-blue-400 to-green-400 rounded-xl shadow-lg">
                       <PositionIcon position={position.position} className="w-6 h-6 text-white" />
                     </div>
                     <h4 className="font-bold text-gray-900 text-xl">{position.position}</h4>
                   </div>
-                  <span className="text-sm font-bold text-white bg-gradient-to-r from-blue-600 to-purple-600 px-4 py-2 rounded-full shadow-md">
+                  <span className="text-sm font-bold text-white bg-gradient-to-br from-blue-400 to-green-400 px-4 py-2 rounded-full shadow-md">
                     {position.totalVotes.toLocaleString()} votes
                   </span>
                 </div>
@@ -569,13 +569,13 @@ const MonitorElection: React.FC = () => {
                           />
                           <span className="text-base font-bold text-gray-900">{candidate.name}</span>
                         </div>
-                        <span className="text-base font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                        <span className="text-base font-bold bg-gradient-to-br from-blue-400 to-green-400 bg-clip-text text-transparent">
                           {candidate.votes.toLocaleString()} ({candidate.percentage}%)
                         </span>
                       </div>
                       <div className="relative h-3 bg-gray-200 rounded-full overflow-hidden shadow-inner">
                         <div
-                          className="absolute inset-y-0 left-0 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-full shadow-md transition-all duration-500"
+                          className="absolute inset-y-0 left-0 bg-gradient-to-br from-blue-400 to-green-400  rounded-full shadow-md transition-all duration-500"
                           style={{ width: `${candidate.percentage}%` }}
                         />
                       </div>
