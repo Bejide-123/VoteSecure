@@ -28,6 +28,7 @@ import AdminSettings from "./Pages/AdminSettings";
 import VoterSettings from "./Pages/VoterSettings";
 import VoterProfile from "./Pages/VoterProfile";
 import ApplyForCandidacy from "./Pages/ApplicationForCandidacy";
+import MonitorElection from "./Pages/ManageElections";
 
 const App = () => {
   return (
@@ -145,6 +146,14 @@ const App = () => {
           element={
             <ProtectedRoute requireAdmin={true}>
               <AdminSettings />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/elections/:id/monitor"
+          element={
+            <ProtectedRoute requireAdmin={true}>
+              <MonitorElection />
             </ProtectedRoute>
           }
         />
