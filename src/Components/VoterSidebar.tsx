@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Home, Vote, History, User, LogOut, Menu, X, Settings2, PanelsTopLeft} from "lucide-react";
+import { Home, Vote, History, User, LogOut, Menu, X, Settings2, PanelsTopLeft, ChartColumnBig} from "lucide-react";
 import { useLocation } from 'react-router-dom';
 import { useAuth } from "../Context/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -16,11 +16,11 @@ interface MenuItem {
 const VoterSidebar: React.FC = () => {
   const { user, logout } = useAuth();
 
-// ADD THIS DEBUG CODE:
-console.log('🔍 User data in sidebar:', user);
-console.log('🔍 Full name:', user?.fullName);
-console.log('🔍 Organization:', user?.organization);
-console.log('🔍 Member ID:', user?.memberId);
+// // ADD THIS DEBUG CODE:
+// console.log('🔍 User data in sidebar:', user);
+// console.log('🔍 Full name:', user?.fullName);
+// console.log('🔍 Organization:', user?.organization);
+// console.log('🔍 Member ID:', user?.memberId);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -54,6 +54,12 @@ console.log('🔍 Member ID:', user?.memberId);
     label: "My Votes",
     icon: <History className="w-5 h-5" />,
     path: "/voter/my-votes",
+  },
+  {
+    id: "results",
+    label: "Results",
+    icon: <ChartColumnBig className="w-5 h-5" />,
+    path: "/voter/results",
   },
   {
     id: "profile",

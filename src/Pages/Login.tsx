@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { 
   Mail, 
   Lock, 
@@ -8,19 +8,79 @@ import {
   AlertCircle,
   CheckCircle2,
   Vote,
-  Loader2
+  Loader2,
+  X
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLogin } from '../Context/LoginContext';
 
-
 const LoginPage: React.FC = () => {
-      const { formData, showPassword, setShowPassword, errors, isLoading, successMessage, handleChange, handleSubmit } = useLogin();
-      const navigate = useNavigate();
+  const { formData, showPassword, setShowPassword, errors, isLoading, successMessage, handleChange, handleSubmit } = useLogin();
+  const navigate = useNavigate();
+  const [showToast, setShowToast] = React.useState(false);
+  const [toastType, setToastType] = React.useState<'success' | 'error'>('success');
+
+  // Show toast when there's a success message or error
+  useEffect(() => {
+    if (successMessage) {
+      setToastType('success');
+      setShowToast(true);
+      const timer = setTimeout(() => setShowToast(false), 6000);
+      return () => clearTimeout(timer);
+    }
+  }, [successMessage]);
+
+  useEffect(() => {
+    if (errors.general) {
+      setToastType('error');
+      setShowToast(true);
+      const timer = setTimeout(() => setShowToast(false), 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [errors.general]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 flex items-center justify-center p-4 transition-colors duration-300">
       
+      {/* Toast Notification */}
+      {showToast && (
+        <div className="fixed top-6 right-6 z-50 animate-slide-in-right">
+          <div className={`
+            flex items-start gap-3 p-4 rounded-xl shadow-2xl border-2 min-w-[320px] max-w-md backdrop-blur-sm
+            ${toastType === 'success' 
+              ? 'bg-gradient-to-r from-green-500 to-emerald-600 border-green-400' 
+              : 'bg-gradient-to-r from-red-500 to-red-600 border-red-400'
+            }
+          `}>
+            <div className="flex-shrink-0 mt-0.5">
+              {toastType === 'success' ? (
+                <div className="p-1 bg-white/20 rounded-full">
+                  <CheckCircle2 className="w-6 h-6 text-white" />
+                </div>
+              ) : (
+                <div className="p-1 bg-white/20 rounded-full">
+                  <AlertCircle className="w-6 h-6 text-white" />
+                </div>
+              )}
+            </div>
+            <div className="flex-1">
+              <h4 className="text-white font-bold text-base mb-1">
+                {toastType === 'success' ? 'Success!' : 'Error'}
+              </h4>
+              <p className="text-white/90 text-sm">
+                {toastType === 'success' ? successMessage : errors.general}
+              </p>
+            </div>
+            <button
+              onClick={() => setShowToast(false)}
+              className="flex-shrink-0 text-white/80 hover:text-white transition-colors p-1 hover:bg-white/10 rounded-lg"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Background Pattern */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-20 w-96 h-96 bg-blue-400 dark:bg-blue-600 rounded-full mix-blend-multiply dark:mix-blend-normal filter blur-3xl opacity-10 dark:opacity-5 animate-blob" />
@@ -58,26 +118,6 @@ const LoginPage: React.FC = () => {
           {/* Card */}
           <div className="relative bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-800 p-8">
             
-            {/* Success Message */}
-            {successMessage && (
-              <div className="mb-6 p-4 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 flex items-start gap-3">
-                <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
-                <span className="text-sm text-green-700 dark:text-green-400 font-medium">
-                  {successMessage}
-                </span>
-              </div>
-            )}
-
-            {/* General Error */}
-            {errors.general && (
-              <div className="mb-6 p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 flex items-start gap-3">
-                <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
-                <span className="text-sm text-red-700 dark:text-red-400 font-medium">
-                  {errors.general}
-                </span>
-              </div>
-            )}
-
             {/* Login Form */}
             <div className="space-y-5">
               
@@ -222,7 +262,7 @@ const LoginPage: React.FC = () => {
             {/* Sign Up Link */}
             <div className="text-center">
               <a 
-                onClick={ () => navigate("/register")}
+                onClick={() => navigate("/register")}
                 className="inline-flex items-center cursor-pointer gap-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-semibold transition-colors group"
               >
                 Create an account
@@ -231,18 +271,6 @@ const LoginPage: React.FC = () => {
             </div>
           </div>
         </div>
-
-        {/* Demo Credentials */}
-        {/* <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-xl">
-          <p className="text-sm text-blue-800 dark:text-blue-300 font-semibold mb-2">
-            🎯 Demo Credentials:
-          </p>
-          <p className="text-xs text-blue-700 dark:text-blue-400">
-            Email: <span className="font-mono font-bold">demo@votesecure.com</span>
-            <br />
-            Password: <span className="font-mono font-bold">demo123</span>
-          </p>
-        </div> */}
       </div>
 
       {/* CSS for animations */}
@@ -257,6 +285,20 @@ const LoginPage: React.FC = () => {
         }
         .animation-delay-2000 {
           animation-delay: 2s;
+        }
+        
+        @keyframes slide-in-right {
+          from {
+            transform: translateX(100%);
+            opacity: 0;
+          }
+          to {
+            transform: translateX(0);
+            opacity: 1;
+          }
+        }
+        .animate-slide-in-right {
+          animation: slide-in-right 0.3s ease-out;
         }
       `}</style>
     </div>

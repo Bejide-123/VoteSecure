@@ -10,18 +10,31 @@ import {
   BarChart3
 } from 'lucide-react';
 import { useAuth } from '../Context/AuthContext';
+import { useElections } from '../Context/ElectionContext';
 import { useNavigate } from 'react-router-dom';
 
 const VoterDashboard: React.FC = () => {
       const navigate = useNavigate();
   const { user } = useAuth();
+  const { elections } = useElections();
 
-  // ===== MOCK DATA =====
+  // ===== CALCULATE REAL STATS =====
+  const now = new Date();
+  const activeCount = elections.filter(e => {
+    const appEnd = new Date(e.application_end_date);
+    return now <= appEnd;
+  }).length;
+
+  const upcomingCount = elections.filter(e => {
+    const appStart = new Date(e.application_start_date);
+    return now < appStart;
+  }).length;
+
   const stats = [
     {
       id: 1,
       label: 'Active Elections',
-      value: '3',
+      value: activeCount.toString(),
       subtext: 'Vote now!',
       icon: <Vote className="w-6 h-6" />,
       color: 'blue',
@@ -30,8 +43,8 @@ const VoterDashboard: React.FC = () => {
     },
     {
       id: 2,
-      label: 'Total Votes Cast',
-      value: '12',
+      label: 'Total Elections',
+      value: elections.length.toString(),
       subtext: 'All time',
       icon: <CheckCircle2 className="w-6 h-6" />,
       color: 'green',
@@ -41,8 +54,8 @@ const VoterDashboard: React.FC = () => {
     {
       id: 3,
       label: 'Upcoming Elections',
-      value: '2',
-      subtext: 'Next 7 days',
+      value: upcomingCount.toString(),
+      subtext: 'Coming soon',
       icon: <Clock className="w-6 h-6" />,
       color: 'purple',
       bgColor: 'bg-purple-50 dark:bg-purple-950/30',
@@ -50,9 +63,9 @@ const VoterDashboard: React.FC = () => {
     },
     {
       id: 4,
-      label: 'Participation Rate',
-      value: '94%',
-      subtext: 'Great job!',
+      label: 'Total Positions',
+      value: elections.reduce((sum, e) => sum + (e.positions?.length || 0), 0).toString(),
+      subtext: 'Available',
       icon: <TrendingUp className="w-6 h-6" />,
       color: 'orange',
       bgColor: 'bg-orange-50 dark:bg-orange-950/30',
@@ -60,41 +73,24 @@ const VoterDashboard: React.FC = () => {
     }
   ];
 
-  const activeElections = [
-    {
-      id: 1,
-      title: 'Student Union Elections 2024',
-      description: 'Vote for President, VP, Secretary and other positions',
-      positions: 8,
-      deadline: '2024-11-15',
-      timeLeft: '3 days left',
+  const activeElections = elections.slice(0, 3).map((election) => {
+    const now = new Date();
+    const appEnd = new Date(election.application_end_date);
+    const daysLeft = Math.ceil((appEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    const hours = Math.ceil((appEnd.getTime() - now.getTime()) / (1000 * 60 * 60));
+    
+    return {
+      id: election.id,
+      title: election.title,
+      description: election.description,
+      positions: election.positions?.length || 0,
+      deadline: new Date(election.application_end_date).toLocaleDateString(),
+      timeLeft: hours < 24 ? `${hours} hours left` : `${daysLeft} days left`,
       voted: false,
-      voters: 2847,
+      voters: election.voters || 0,
       color: 'blue'
-    },
-    {
-      id: 2,
-      title: 'Faculty Representative Elections',
-      description: 'Choose your department representatives',
-      positions: 4,
-      deadline: '2024-11-12',
-      timeLeft: '18 hours left',
-      voted: false,
-      voters: 856,
-      color: 'green'
-    },
-    {
-      id: 3,
-      title: 'Sports Council Elections',
-      description: 'Vote for sports committee members',
-      positions: 5,
-      deadline: '2024-11-20',
-      timeLeft: '8 days left',
-      voted: true,
-      voters: 1250,
-      color: 'purple'
-    }
-  ];
+    };
+  });
 
   const recentVotes = [
     {
@@ -128,7 +124,7 @@ const VoterDashboard: React.FC = () => {
                 Welcome back, {user?.fullName.split(' ')[0]}! 👋
               </h1>
               <p className="text-gray-600 dark:text-gray-400 mb-4">
-                You have <span className="font-bold text-blue-600 dark:text-blue-400">3 active elections</span> waiting for your vote
+                You have <span className="font-bold text-blue-600 dark:text-blue-400">{activeCount} active election{activeCount !== 1 ? 's' : ''}</span> waiting for your vote
               </p>
               <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                 <Award className="w-4 h-4" />
@@ -191,7 +187,7 @@ const VoterDashboard: React.FC = () => {
               Click on any election to cast your vote
             </p>
           </div>
-          <button className="text-sm font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors">
+          <button onClick={() => navigate("/voter/elections")} className="text-sm font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors">
             View All Elections
           </button>
         </div>
@@ -262,7 +258,7 @@ const VoterDashboard: React.FC = () => {
                         <ArrowRight className="w-5 h-5 hidden sm:inline" />
                       </button>
                     ) : (
-                      <button className="w-full border-2 border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 py-3 rounded-xl font-bold hover:border-blue-500 dark:hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-200 flex items-center justify-center gap-2">
+                      <button onClick={() => navigate(`/voter/results/${election.id}`)} className="w-full border-2 border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 py-3 rounded-xl font-bold hover:border-blue-500 dark:hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-200 flex items-center justify-center gap-2">
                         <BarChart3 className="w-5 h-5" />
                         View Results
                       </button>
@@ -313,7 +309,7 @@ const VoterDashboard: React.FC = () => {
             ))}
           </div>
 
-          <button className="w-full mt-4 px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-300 font-semibold hover:border-blue-500 dark:hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-200">
+          <button onClick={() => navigate("/voter/my-votes")} className="w-full mt-4 px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-300 font-semibold hover:border-blue-500 dark:hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-200">
             View All Activity
           </button>
         </div>

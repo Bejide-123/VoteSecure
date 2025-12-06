@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import {
   Vote,
-  ArrowRight,
   Clock,
   User,
   Mail,
@@ -19,13 +18,11 @@ import {
 import { useAuth } from "../Context/AuthContext";
 import { useElections } from "../Context/ElectionContext";
 import { supabase } from "../lib/supabase";
-import { useNavigate } from "react-router-dom";
+// import { useNavigate } from "react-router-dom";
 
 interface Position {
-  name: string;
+  title: string;
   description: string;
-  max_candidates: number;
-  min_candidates: number;
 }
 
 interface Application {
@@ -44,8 +41,10 @@ interface Application {
 const ApplicationsPage: React.FC = () => {
   const { user } = useAuth();
   const { elections, loading: electionsLoading } = useElections();
-  const navigate = useNavigate();
-//   console.log("Elections from context:", elections);
+  // const navigate = useNavigate();
+  // console.log("Elections from context:", elections);
+  // console.log("Elections loading:", electionsLoading);
+  // console.log("User:", user);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedElection, setSelectedElection] = useState<any>(null);
   const [selectedPosition, setSelectedPosition] = useState<Position | null>(null);
@@ -92,19 +91,19 @@ const ApplicationsPage: React.FC = () => {
   const now = new Date();
 
 const openElections = elections.filter((election) => {
-  const regStart = new Date(election.registration_start_date);
-  const regEnd = new Date(election.registration_end_date);
+  const appStart = new Date(election.application_start_date);
+  const appEnd = new Date(election.application_end_date);
   const matchesSearch = election.title.toLowerCase().includes(searchQuery.toLowerCase());
-  return now >= regStart && now <= regEnd && matchesSearch;
+  return now >= appStart && now <= appEnd && matchesSearch;
 });
 
 const upcomingElections = elections
     .filter((election) => {
-      const regStart = new Date(election.registration_start_date);
+      const appStart = new Date(election.application_start_date);
       const matchesSearch = election.title.toLowerCase().includes(searchQuery.toLowerCase());
-      return now < regStart && matchesSearch;
+      return now < appStart && matchesSearch;
     })
-    .sort((a, b) => new Date(a.registration_start_date).getTime() - new Date(b.registration_start_date).getTime());
+    .sort((a, b) => new Date(a.application_start_date).getTime() - new Date(b.application_start_date).getTime());
 
   const combinedElections = [
     ...openElections.map(election => ({ election, status: 'open' })),
@@ -115,8 +114,8 @@ const upcomingElections = elections
   const handleOpenModal = (election: any, position: Position) => {
     setSelectedElection(election);
     setSelectedPosition(position);
-    setIsModalOpen(true);
     setFormData({ manifesto: "", campaign_promises: "", profile_image_url: "" });
+    setIsModalOpen(true);
   };
 
   const handleCloseModal = () => {
@@ -166,7 +165,7 @@ const upcomingElections = elections
       const { error } = await supabase.from("applications").insert([
         {
           election_id: selectedElection.id,
-          position_title: selectedPosition?.name,
+          position_title: selectedPosition?.title,
           user_id: user?.uid,
           applicant_name: user?.fullName,
           applicant_email: user?.email,
@@ -304,16 +303,10 @@ const upcomingElections = elections
         ) : (
           <div className="grid md:grid-cols-2 gap-8">
   {combinedElections.map(({ election, status }, index) => {
-    const regEndDate = new Date(election.registration_end_date);
+    const appEndDate = new Date(election.application_end_date);
     const daysLeft = Math.ceil(
-      (regEndDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
+      (appEndDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
     );
-
-    const isApplicationOpen = (startDate?: string, endDate?: string) => {
-      if (!startDate || !endDate) return false;
-      const now = new Date();
-      return now >= new Date(startDate) && now <= new Date(endDate);
-    };
 
     return (
       <div
@@ -321,7 +314,7 @@ const upcomingElections = elections
         className="group relative bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300"
       >
         {/* Gradient Border */}
-        <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-600 to-green-600 rounded-2xl blur opacity-0 group-hover:opacity-30 transition duration-300" />
+        <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-600 to-green-600 rounded-2xl blur opacity-0 group-hover:opacity-30 transition duration-300 pointer-events-none" />
 
         {/* Status Banner */}
         <div className={`
@@ -372,64 +365,69 @@ const upcomingElections = elections
           {/* Positions */}
           <div className="border-t border-gray-200 dark:border-gray-800 pt-4">
             <h4 className="font-semibold text-gray-900 dark:text-white mb-3">Available Positions:</h4>
+            {!election.positions || election.positions.length === 0 ? (
+              <p className="text-sm text-gray-500">No positions available</p>
+            ) : (
             <div className="grid grid-cols-1 gap-3">
-              {election.positions?.map((position: Position, index: number) => {
-                const applied = myApplications.some(
-                  (app) =>
-                    app.election_id === election.id &&
-                    app.position_title === position.name
-                );
 
-                return (
-                  <button
-                    key={`${election.id}-${position.name}-${index}`}
-                    onClick={() => handleOpenModal(election, position)}
-                    disabled={applied || status === 'upcoming'}
-                    className={`
-                      flex items-center justify-between p-4 border rounded-xl transition-all group disabled:opacity-60 disabled:cursor-not-allowed
-                      ${status === 'open' && !applied ? 'bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-950/30 dark:to-blue-950/30 hover:shadow-lg' : 'bg-gray-100 dark:bg-gray-800'}
-                    `}
-                  >
-                    <div className="text-left">
-                      <p className={`font-bold text-gray-900 dark:text-white ${status === 'open' && !applied ? 'group-hover:text-purple-600 dark:group-hover:text-purple-400' : ''}`}>
-                        {position.name}
-                      </p>
-                      {position.description && (
-                        <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                          {position.description}
-                        </p>
-                      )}
-                    </div>
-                    <Award className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                  </button>
-                );
-              })}
+{election.positions.map((position: Position, index: number) => {
+  const applied = myApplications.some(
+    (app) =>
+      app.election_id === election.id &&
+      app.position_title === position.title  // ✅ Correct property
+  );
+
+  return (
+    <button
+      key={`${election.id}-${position.title}-${index}`}  // ✅ Changed from position.name
+      type="button"
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (!applied && status === 'open') {
+          handleOpenModal(election, position);
+        }
+      }}
+      disabled={applied || status !== 'open'}  // ✅ Disable if applied OR not open
+      className={`
+        w-full flex items-center justify-between p-4 border rounded-xl transition-all group
+        ${applied || status !== 'open' ? 'opacity-60 cursor-not-allowed bg-gray-100 dark:bg-gray-800' : 'bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-950/30 dark:to-blue-950/30 hover:shadow-lg cursor-pointer'}
+      `}
+    >
+      <div className="text-left">
+        <p className={`font-bold text-gray-900 dark:text-white ${status === 'open' && !applied ? 'group-hover:text-purple-600 dark:group-hover:text-purple-400' : ''}`}>
+          {position.title}
+        </p>
+        {position.description && (
+          <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+            {position.description}
+          </p>
+        )}
+      </div>
+      <Award className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+    </button>
+  );
+})}
             </div>
+            )}
           </div>
 
           {/* Action Button */}
           <div className="mt-4">
             {status === 'open' && (
-              <button
-                onClick={() => navigate(`/voter/elections/${election.id}`)}
-                className="w-full bg-gradient-to-r from-blue-600 to-green-600 text-white py-3 rounded-xl font-bold hover:shadow-xl hover:scale-105 transition-all duration-200 flex items-center justify-center gap-2"
-              >
-                <Vote className="w-5 h-5" />
-                Cast Your Vote
-                <ArrowRight className="w-5 h-5" />
-              </button>
+              <div className="text-center py-3 bg-blue-50 dark:bg-blue-950/30 rounded-xl border-2 border-blue-200 dark:border-blue-800">
+                <p className="text-sm font-semibold text-blue-700 dark:text-blue-400">
+                 <Award className="w-5 h-5 inline-block mr-2" /> Apply Now
+                </p>
+              </div>
             )}
             {status === 'upcoming' && (
               <button
-                disabled={!isApplicationOpen(election.application_start_date, election.application_end_date)}
-                className={`w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 ${
-                  isApplicationOpen(election.application_start_date, election.application_end_date)
-                    ? 'bg-gradient-to-r from-teal-500 to-cyan-500 text-white hover:shadow-xl hover:scale-105'
-                    : 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 cursor-not-allowed'
-                }`}
+                disabled
+                className="w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 cursor-not-allowed"
               >
-                <Award className="w-5 h-5" />
-                {isApplicationOpen(election.application_start_date, election.application_end_date) ? 'Apply Now' : 'Opens Soon'}
+                <Clock className="w-5 h-5" />
+                Applications Coming Soon
               </button>
             )}
           </div>
@@ -447,7 +445,7 @@ const upcomingElections = elections
               <div className="flex items-start justify-between mb-6">
                 <div>
                   <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
-                    Apply for {selectedPosition.name}
+                    Apply for {selectedPosition.title}
                   </h3>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
                     {selectedElection.title}
@@ -486,7 +484,9 @@ const upcomingElections = elections
                         {user?.department}
                       </span>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex.
+                    
+                     items-center gap-2">
                       <Phone className="w-4 h-4 text-gray-600 dark:text-gray-400" />
                       <span className="text-gray-600 dark:text-gray-400"></span>
                     </div>

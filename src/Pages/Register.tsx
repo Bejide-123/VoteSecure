@@ -17,6 +17,7 @@ import {
   Check
 } from 'lucide-react';
 import { useRegister } from '../Context/RegisterContext';
+import { useEffect } from 'react';
 
 const RegistrationPage: React.FC = () => {
   const {
@@ -36,11 +37,74 @@ const RegistrationPage: React.FC = () => {
     setSelfieImage,
     fileInputRef,
     passwordStrength,
-    validateStep
+    validateStep,
+    successMessage
   } = useRegister();
+
+  const [showToast, setShowToast] = React.useState(false);
+  const [toastType, setToastType] = React.useState<'success' | 'error'>('success');
+
+  // Show toast when there's a success message
+  useEffect(() => {
+    if (successMessage) {
+      setToastType('success');
+      setShowToast(true);
+      const timer = setTimeout(() => setShowToast(false), 6000);
+      return () => clearTimeout(timer);
+    }
+  }, [successMessage]);
+
+  // Show toast when there's a general error
+  useEffect(() => {
+    if (errors.general) {
+      setToastType('error');
+      setShowToast(true);
+      const timer = setTimeout(() => setShowToast(false), 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [errors.general]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 py-12 px-4">
+      
+      {/* Toast Notification */}
+      {showToast && (
+        <div className="fixed top-6 right-6 z-50 animate-slide-in-right">
+          <div className={`
+            flex items-start gap-3 p-4 rounded-xl shadow-2xl border-2 min-w-[320px] max-w-md backdrop-blur-sm
+            ${toastType === 'success' 
+              ? 'bg-gradient-to-r from-green-500 to-emerald-600 border-green-400' 
+              : 'bg-gradient-to-r from-red-500 to-red-600 border-red-400'
+            }
+          `}>
+            <div className="flex-shrink-0 mt-0.5">
+              {toastType === 'success' ? (
+                <div className="p-1 bg-white/20 rounded-full">
+                  <CheckCircle2 className="w-6 h-6 text-white" />
+                </div>
+              ) : (
+                <div className="p-1 bg-white/20 rounded-full">
+                  <AlertCircle className="w-6 h-6 text-white" />
+                </div>
+              )}
+            </div>
+            <div className="flex-1">
+              <h4 className="text-white font-bold text-base mb-1">
+                {toastType === 'success' ? 'Success!' : 'Error'}
+              </h4>
+              <p className="text-white/90 text-sm">
+                {toastType === 'success' ? successMessage : errors.general}
+              </p>
+            </div>
+            <button
+              onClick={() => setShowToast(false)}
+              className="flex-shrink-0 text-white/80 hover:text-white transition-colors p-1 hover:bg-white/10 rounded-lg"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+      )}
       
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-20 w-96 h-96 bg-blue-400 dark:bg-blue-600 rounded-full mix-blend-multiply dark:mix-blend-normal filter blur-3xl opacity-10 dark:opacity-5" />

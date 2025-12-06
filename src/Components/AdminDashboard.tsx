@@ -4,6 +4,8 @@ import {
   Vote,
   TrendingUp,
   Clock,
+  Eye,
+  ChevronRight,
   CheckCircle2,
   AlertCircle,
   Calendar,
@@ -231,7 +233,7 @@ const AdminDashboard: React.FC = () => {
               <h2 className="text-xl font-bold text-gray-900 dark:text-white">
                 Recent Elections
               </h2>
-              <button className="text-sm font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors">
+              <button onClick={() => navigate("/admin/elections/ongoing")} className="text-sm font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors">
                 View All
               </button>
             </div>
@@ -313,13 +315,13 @@ const AdminDashboard: React.FC = () => {
                         {!election.voted ? (
                           <button
                             onClick={() =>
-                              navigate(`/voter/elections/${election.id}`)
+                              navigate(`/admin/elections/${election.id}/monitor`)
                             }
                             className="w-full bg-gradient-to-r from-blue-600 to-green-600 text-white py-2.5 sm:py-3 px-4 sm:px-6 rounded-xl font-bold hover:shadow-xl hover:scale-105 transition-all duration-200 flex items-center justify-center gap-2"
                           >
-                            <Vote className="w-5 h-5" />
-                            <span className="truncate">Cast Your Vote</span>
-                            <ArrowRight className="w-5 h-5 hidden sm:inline" />
+                            <Eye className="w-5 h-5" />
+                            <span className="truncate">Live Monitor</span>
+                            <ChevronRight className="w-5 h-5" />
                           </button>
                         ) : (
                           <button className="w-full border-2 border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 py-3 rounded-xl font-bold hover:border-blue-500 dark:hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-200 flex items-center justify-center gap-2">

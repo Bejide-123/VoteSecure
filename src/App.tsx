@@ -29,6 +29,9 @@ import VoterSettings from "./Pages/VoterSettings";
 import VoterProfile from "./Pages/VoterProfile";
 import ApplyForCandidacy from "./Pages/ApplicationForCandidacy";
 import MonitorElection from "./Pages/ManageElections";
+import EditElection from "./Pages/EditElections";
+import VoterResultsList from "./Pages/ElectionListResults";
+import VoterResultsDetail from "./Pages/ResultsDetails";
 
 const App = () => {
   return (
@@ -158,6 +161,14 @@ const App = () => {
           }
         />
         <Route
+          path="/admin/elections/edit/:id"
+          element={
+            <ProtectedRoute requireAdmin={true}>
+              <EditElection />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/voter/dashboard"
           element={
             <ProtectedRoute>
@@ -212,6 +223,26 @@ const App = () => {
             <ProtectedRoute>
               <VoterLayout>
                 <MyVotes />
+              </VoterLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/voter/results"
+          element={
+            <ProtectedRoute>
+              <VoterLayout>
+                <VoterResultsList/>
+              </VoterLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/voter/results/:electionId"
+          element={
+            <ProtectedRoute>
+              <VoterLayout>
+                <VoterResultsDetail />
               </VoterLayout>
             </ProtectedRoute>
           }

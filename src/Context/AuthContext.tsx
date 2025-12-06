@@ -81,7 +81,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           const parsedUser = JSON.parse(savedUser);
           parsedUser.createdAt = new Date(parsedUser.createdAt);
           setUser(parsedUser);
-          console.log('✅ User loaded from storage:', parsedUser.email);
+          // console.log('✅ User loaded from storage:', parsedUser.email);
         }
 
         // Then check if there's an active Supabase session
@@ -111,7 +111,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
             
             setUser(userData);
             localStorage.setItem('votesecure_user', JSON.stringify(userData));
-            console.log('✅ User session restored from Supabase');
+            // console.log('✅ User session restored from Supabase');
           }
         } else if (!savedUser) {
           console.log('ℹ️ No saved user or session found');

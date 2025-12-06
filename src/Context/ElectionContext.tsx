@@ -4,7 +4,7 @@ import { supabase } from "../lib/supabase";
 
 // ===== TYPE DEFINITIONS =====
 interface Position {
-  name: string;
+  title: string;
   description: string;
   max_candidates: number;
   min_candidates: number;
@@ -62,11 +62,26 @@ export const ElectionProvider = ({ children }: { children: ReactNode }) => {
         .from("elections")
         .select("*")
         .order("created_at", { ascending: false });
-        console.log(data);
 
       if (error) throw error;
 
-      setElections(data || []);
+      // Parse positions JSON string into array
+      const electionsWithParsedPositions = (data || []).map((election: any) => {
+        let positions = [];
+        try {
+          if (election.positions && typeof election.positions === 'string') {
+            positions = JSON.parse(election.positions);
+          } else if (election.positions && Array.isArray(election.positions)) {
+            positions = election.positions;
+          }
+        } catch (err) {
+          console.error("Error parsing positions for election", election.id, err);
+          positions = [];
+        }
+        return { ...election, positions };
+      });
+
+      setElections(electionsWithParsedPositions);
     } catch (error) {
       console.error("Error fetching elections:", error);
     } finally {
