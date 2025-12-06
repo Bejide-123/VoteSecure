@@ -52,3 +52,12 @@
 html {
       scroll-behavior: smooth;
 }
+
+/* Utility: hide scrollbar but keep scrolling (WebKit, Firefox, IE/Edge) */
+.hide-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none; /* WebKit */
+}

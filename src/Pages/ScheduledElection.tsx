@@ -346,7 +346,7 @@ const ScheduledElections: React.FC = () => {
         {/* ===== DELETE CONFIRMATION MODAL ===== */}
         {showDeleteModal && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 max-w-md w-full">
+            <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 max-w-md w-full max-h-[80vh] overflow-y-auto hide-scrollbar">
               <div className="text-center mb-6">
                 <div className="inline-flex p-3 bg-red-100 dark:bg-red-900/30 rounded-full mb-4">
                   <Trash2 className="w-8 h-8 text-red-600 dark:text-red-400" />

@@ -326,7 +326,7 @@ const AdminSidebar: React.FC = () => {
           </div>
 
           {/* ===== MENU ITEMS ===== */}
-          <nav className="flex-1 overflow-y-auto p-4 space-y-1">
+          <nav className="flex-1 overflow-y-auto hide-scrollbar p-4 space-y-1">
             {menuItems.map((item) => (
               <div key={item.id}>
                 {/* Main Menu Item */}

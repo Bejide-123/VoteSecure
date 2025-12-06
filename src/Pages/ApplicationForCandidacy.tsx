@@ -441,7 +441,7 @@ const upcomingElections = elections
         {/* Application Modal */}
         {isModalOpen && selectedElection && selectedPosition && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-            <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 max-w-2xl w-full my-8">
+            <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto hide-scrollbar">
               <div className="flex items-start justify-between mb-6">
                 <div>
                   <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">

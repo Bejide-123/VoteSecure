@@ -397,7 +397,7 @@ VoteSecure - Secure Digital Voting
 
         {selectedVote && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-            <div className="bg-white dark:bg-gray-900 rounded-2xl p-8 max-w-2xl w-full my-8">
+            <div className="bg-white dark:bg-gray-900 rounded-2xl p-8 max-w-2xl w-full max-h-[80vh] overflow-y-auto hide-scrollbar">
               <div className="flex items-start justify-between mb-6">
                 <div className="flex items-center gap-3">
                   <div className="p-3 rounded-xl bg-gradient-to-br from-blue-600 to-green-600">
