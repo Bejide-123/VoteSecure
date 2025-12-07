@@ -1,6 +1,17 @@
 import React, { useState } from "react";
-import { Home, Vote, History, User, LogOut, Menu, X, Settings2, PanelsTopLeft, ChartColumnBig} from "lucide-react";
-import { useLocation } from 'react-router-dom';
+import {
+  Home,
+  Vote,
+  History,
+  User,
+  LogOut,
+  Menu,
+  X,
+  Settings2,
+  PanelsTopLeft,
+  ChartColumnBig,
+} from "lucide-react";
+import { useLocation } from "react-router-dom";
 import { useAuth } from "../Context/AuthContext";
 import { useNavigate } from "react-router-dom";
 
@@ -63,7 +74,7 @@ const VoterSidebar: React.FC = () => {
       label: "User Settings",
       icon: <Settings2 className="w-5 h-5" />,
       path: "/voter/settings",
-    }
+    },
   ];
 
   const handleMenuClick = (menuId: string, path: string) => {
@@ -75,7 +86,11 @@ const VoterSidebar: React.FC = () => {
   React.useEffect(() => {
     const path = location.pathname;
     const match = menuItems.find((m) => {
-      return path === m.path || path.startsWith(m.path + '/') || path.startsWith(m.path);
+      return (
+        path === m.path ||
+        path.startsWith(m.path + "/") ||
+        path.startsWith(m.path)
+      );
     });
     if (match) setActiveMenu(match.id);
   }, [location.pathname]);
@@ -112,13 +127,28 @@ const VoterSidebar: React.FC = () => {
           </div>
 
           {/* Menu Button */}
-          <button
-            onClick={() => setIsMobileOpen(true)}
-            aria-label="Open menu"
-            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-          >
-            <Menu className="w-6 h-6 text-gray-900 dark:text-white" />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setIsMobileOpen(true)}
+              aria-label="Open menu"
+              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            >
+              <Menu className="w-6 h-6 text-gray-900 dark:text-white" />
+            </button>
+            <button
+              onClick={() => navigate("/voter/profile")}
+              aria-label="View profile"
+              className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            >
+              <div className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold shrink-0">
+                <img
+                  className="w-full h-full rounded-full object-cover"
+                  src={user?.selfieUrl}
+                  alt="user-image"
+                />
+              </div>
+            </button>
+          </div>
         </div>
       </header>
 
@@ -178,7 +208,7 @@ const VoterSidebar: React.FC = () => {
             {/* Desktop Collapse Toggle */}
             <button
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              aria-label={isSidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
+              aria-label={isSidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
               className="hidden lg:flex p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
             >
               {isSidebarOpen ? (
@@ -244,13 +274,20 @@ const VoterSidebar: React.FC = () => {
             {isSidebarOpen ? (
               <div className="space-y-3">
                 {/* User Info Card */}
-                <div onClick={() => {
-                  navigate("/voter/profile")
-                  setIsMobileOpen(false)
-                }} className="p-3 rounded-xl bg-gradient-to-br from-blue-50 to-green-50 dark:from-blue-950/30 dark:to-green-950/30 border border-blue-200 dark:border-blue-800 cursor-pointer hover:shadow-md transition-shadow">
+                <div
+                  onClick={() => {
+                    navigate("/voter/profile");
+                    setIsMobileOpen(false);
+                  }}
+                  className="p-3 rounded-xl bg-gradient-to-br from-blue-50 to-green-50 dark:from-blue-950/30 dark:to-green-950/30 border border-blue-200 dark:border-blue-800 cursor-pointer hover:shadow-md transition-shadow"
+                >
                   <div className="flex items-center gap-3 mb-2">
                     <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold shrink-0">
-                      <img className="rounded-full" src={user?.selfieUrl} alt="user-image" />  
+                      <img
+                        className="rounded-full"
+                        src={user?.selfieUrl}
+                        alt="user-image"
+                      />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
@@ -263,14 +300,14 @@ const VoterSidebar: React.FC = () => {
                   </div>
 
                   {/* Member ID */}
-                  <div className="pt-2 border-t border-blue-200 dark:border-blue-800">
+                  {/* <div className="pt-2 border-t border-blue-200 dark:border-blue-800">
                     <p className="text-xs text-gray-500 dark:text-gray-400">
                       Member ID
                     </p>
                     <p className="text-xs font-mono font-semibold text-gray-900 dark:text-white">
                       {user?.memberId}
                     </p>
-                  </div>
+                  </div> */}
                 </div>
 
                 {/* Logout Button */}

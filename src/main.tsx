@@ -5,12 +5,14 @@ import { LoginProvider } from "./Context/LoginContext.tsx";
 import { AuthProvider } from "./Context/AuthContext.tsx";
 import { RegisterProvider } from "./Context/RegisterContext.tsx";
 import { ElectionProvider } from "./Context/ElectionContext.tsx";
+import ScrollToTop from "./Components/ScrollToTop.tsx";
 import "./index.css";
 import App from "./App.tsx";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <BrowserRouter>
+      <ScrollToTop />
       <ElectionProvider>
         <AuthProvider>
           <LoginProvider>

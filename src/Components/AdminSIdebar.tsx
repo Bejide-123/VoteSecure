@@ -241,13 +241,28 @@ const AdminSidebar: React.FC = () => {
           </div>
 
           {/* Menu Button */}
-          <button
-            onClick={() => setIsMobileOpen(true)}
-            aria-label="Open menu"
-            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-          >
-            <Menu className="w-6 h-6 text-gray-900 dark:text-white" />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setIsMobileOpen(true)}
+              aria-label="Open menu"
+              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            >
+              <Menu className="w-6 h-6 text-gray-900 dark:text-white" />
+            </button>
+            <button
+              onClick={() => navigate("/admin/settings")}
+              aria-label="View profile"
+              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            >
+              <div className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold shrink-0">
+                <img
+                  className="w-full h-full rounded-full object-cover"
+                  src={user?.selfieUrl}
+                  alt="user-image"
+                />
+              </div>
+            </button>
+          </div>
         </div>
       </header>
 
