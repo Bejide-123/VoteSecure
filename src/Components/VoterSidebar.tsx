@@ -4,7 +4,6 @@ import { useLocation } from 'react-router-dom';
 import { useAuth } from "../Context/AuthContext";
 import { useNavigate } from "react-router-dom";
 
-// ===== MENU ITEM TYPE =====
 interface MenuItem {
   id: string;
   label: string;
@@ -15,84 +14,72 @@ interface MenuItem {
 
 const VoterSidebar: React.FC = () => {
   const { user, logout } = useAuth();
-
-// // ADD THIS DEBUG CODE:
-// console.log('🔍 User data in sidebar:', user);
-// console.log('🔍 Full name:', user?.fullName);
-// console.log('🔍 Organization:', user?.organization);
-// console.log('🔍 Member ID:', user?.memberId);
-
   const navigate = useNavigate();
   const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [activeMenu, setActiveMenu] = useState("dashboard");
 
-  // ===== MENU ITEMS =====
   const menuItems: MenuItem[] = [
-  {
-    id: "dashboard",
-    label: "Dashboard",
-    icon: <Home className="w-5 h-5" />,
-    path: "/voter/dashboard",
-  },
-  {
-    id: "elections",
-    label: "Elections",
-    icon: <Vote className="w-5 h-5" />,
-    path: "/voter/elections",
-    badge: 3,
-  },
-  {
-    id: "applications",
-    label: "Applications",
-    icon: <PanelsTopLeft className="w-5 h-5" />,
-    path: "/voter/applications",
-  },
-  {
-    id: "my-votes",
-    label: "My Votes",
-    icon: <History className="w-5 h-5" />,
-    path: "/voter/my-votes",
-  },
-  {
-    id: "results",
-    label: "Results",
-    icon: <ChartColumnBig className="w-5 h-5" />,
-    path: "/voter/results",
-  },
-  {
-    id: "profile",
-    label: "Profile",
-    icon: <User className="w-5 h-5" />,
-    path: "/voter/profile",
-  },
-  {
-    id: "settings",
-    label: "User Settings",
-    icon: <Settings2 className="w-5 h-5" />,
-    path: "/voter/settings",
-  }
-];
+    {
+      id: "dashboard",
+      label: "Dashboard",
+      icon: <Home className="w-5 h-5" />,
+      path: "/voter/dashboard",
+    },
+    {
+      id: "elections",
+      label: "Elections",
+      icon: <Vote className="w-5 h-5" />,
+      path: "/voter/elections",
+      badge: 3,
+    },
+    {
+      id: "applications",
+      label: "Applications",
+      icon: <PanelsTopLeft className="w-5 h-5" />,
+      path: "/voter/applications",
+    },
+    {
+      id: "my-votes",
+      label: "My Votes",
+      icon: <History className="w-5 h-5" />,
+      path: "/voter/my-votes",
+    },
+    {
+      id: "results",
+      label: "Results",
+      icon: <ChartColumnBig className="w-5 h-5" />,
+      path: "/voter/results",
+    },
+    {
+      id: "profile",
+      label: "Profile",
+      icon: <User className="w-5 h-5" />,
+      path: "/voter/profile",
+    },
+    {
+      id: "settings",
+      label: "User Settings",
+      icon: <Settings2 className="w-5 h-5" />,
+      path: "/voter/settings",
+    }
+  ];
 
-  // ===== HANDLE MENU CLICK =====
   const handleMenuClick = (menuId: string, path: string) => {
     setActiveMenu(menuId);
     navigate(path);
-    setIsMobileOpen(false); // Close mobile menu on navigation
+    setIsMobileOpen(false);
   };
 
-  // Sync active menu with current location
   React.useEffect(() => {
     const path = location.pathname;
     const match = menuItems.find((m) => {
-      // match exact path or when current path starts with the menu path
       return path === m.path || path.startsWith(m.path + '/') || path.startsWith(m.path);
     });
     if (match) setActiveMenu(match.id);
   }, [location.pathname]);
 
-  // Notify layout about sidebar open/close so main content can respond
   React.useEffect(() => {
     try {
       const ev = new CustomEvent("sidebar:change", {
@@ -100,35 +87,53 @@ const VoterSidebar: React.FC = () => {
       });
       window.dispatchEvent(ev);
     } catch (err) {
-      // ignore in environments that don't support CustomEvent
+      // ignore
     }
   }, [isSidebarOpen]);
 
   return (
     <>
-      {/* ===== MOBILE MENU BUTTON (Only show when sidebar is closed on mobile) ===== */}
-      {!isMobileOpen && (
-        <button
-          onClick={() => setIsMobileOpen(true)}
-          aria-label="Open sidebar"
-          className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-lg"
-        >
-          <Menu className="w-6 h-6 text-gray-900 dark:text-white" />
-        </button>
-      )}
+      {/* ===== MOBILE HEADER BAR (Only visible on mobile) ===== */}
+      <header className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 shadow-sm">
+        <div className="flex items-center justify-between px-4 py-3">
+          {/* Logo */}
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-green-600 rounded-lg blur opacity-50" />
+              <div className="relative bg-gradient-to-br from-blue-600 to-green-600 p-2 rounded-lg">
+                <Vote className="w-5 h-5 text-white" />
+              </div>
+            </div>
+            <div>
+              <h2 className="text-base font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
+                VoteSecure
+              </h2>
+            </div>
+          </div>
+
+          {/* Menu Button */}
+          <button
+            onClick={() => setIsMobileOpen(true)}
+            aria-label="Open menu"
+            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          >
+            <Menu className="w-6 h-6 text-gray-900 dark:text-white" />
+          </button>
+        </div>
+      </header>
 
       {/* ===== MOBILE OVERLAY ===== */}
       {isMobileOpen && (
         <div
           onClick={() => setIsMobileOpen(false)}
-          className="lg:hidden fixed inset-0 bg-black/50 z-30"
+          className="lg:hidden fixed inset-0 bg-black/50 z-40 backdrop-blur-sm"
         />
       )}
 
       {/* ===== SIDEBAR ===== */}
       <aside
         className={`
-          fixed top-0 left-0 h-full bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 z-40
+          fixed top-0 left-0 h-full bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 z-50
           transition-all duration-300 ease-in-out
           ${isSidebarOpen ? "w-68" : "w-20"}
           ${
@@ -139,20 +144,14 @@ const VoterSidebar: React.FC = () => {
         `}
       >
         <div className="flex flex-col h-full">
-          {/* ===== LOGO SECTION ===== */}
+          {/* ===== LOGO SECTION (Desktop) ===== */}
           <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-800">
             {isSidebarOpen ? (
               <div className="flex items-center gap-3">
                 <div className="relative">
                   <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-green-600 rounded-lg blur opacity-50" />
                   <div className="relative bg-gradient-to-br from-blue-600 to-green-600 p-2 rounded-lg">
-                    <Vote
-                      onClick={() => {
-                        console.log("Clicked");
-                        setIsSidebarOpen(true);
-                      }}
-                      className="w-5 h-5 text-white"
-                    />
+                    <Vote className="w-5 h-5 text-white" />
                   </div>
                 </div>
                 <div>
@@ -176,7 +175,6 @@ const VoterSidebar: React.FC = () => {
               </div>
             )}
 
-            {/* Desktop toggle + Mobile close button */}
             {/* Desktop Collapse Toggle */}
             <button
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -186,7 +184,7 @@ const VoterSidebar: React.FC = () => {
               {isSidebarOpen ? (
                 <X className="w-5 h-5 text-gray-600 dark:text-gray-400" />
               ) : (
-                <Menu className="w-5 h-5 hidden text-gray-600 dark:text-gray-400" />
+                <Menu className="w-5 h-5 text-gray-600 dark:text-gray-400" />
               )}
             </button>
 
@@ -248,9 +246,10 @@ const VoterSidebar: React.FC = () => {
                 {/* User Info Card */}
                 <div onClick={() => {
                   navigate("/voter/profile")
-                }} className="p-3 rounded-xl bg-gradient-to-br from-blue-50 to-green-50 dark:from-blue-950/30 dark:to-green-950/30 border border-blue-200 dark:border-blue-800">
+                  setIsMobileOpen(false)
+                }} className="p-3 rounded-xl bg-gradient-to-br from-blue-50 to-green-50 dark:from-blue-950/30 dark:to-green-950/30 border border-blue-200 dark:border-blue-800 cursor-pointer hover:shadow-md transition-shadow">
                   <div className="flex items-center gap-3 mb-2">
-                    <div className="w-10 h-10 rounded-full  flex items-center justify-center text-white font-bold shrink-0">
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold shrink-0">
                       <img className="rounded-full" src={user?.selfieUrl} alt="user-image" />  
                     </div>
                     <div className="flex-1 min-w-0">
@@ -295,6 +294,15 @@ const VoterSidebar: React.FC = () => {
           </div>
         </div>
       </aside>
+
+      {/* Add padding to body content on mobile to account for fixed header */}
+      <style>{`
+        @media (max-width: 1024px) {
+          body {
+            padding-top: 60px;
+          }
+        }
+      `}</style>
     </>
   );
 };

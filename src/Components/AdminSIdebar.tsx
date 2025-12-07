@@ -14,8 +14,6 @@ import {
   Clock,
   History,
   UserCheck,
-  // Search,
-  // Download,
   TrendingUp,
   PieChart,
   Shield,
@@ -110,18 +108,6 @@ const AdminSidebar: React.FC = () => {
           icon: <Users className="w-4 h-4" />,
           path: "/admin/voters/all",
         },
-        // {
-        //   id: "search-voters",
-        //   label: "Search Voters",
-        //   icon: <Search className="w-4 h-4" />,
-        //   path: "/admin/voters/search",
-        // },
-        // {
-        //   id: "export-voters",
-        //   label: "Export List",
-        //   icon: <Download className="w-4 h-4" />,
-        //   path: "/admin/voters/export",
-        // },
       ],
     },
     {
@@ -197,11 +183,10 @@ const AdminSidebar: React.FC = () => {
   const handleMenuClick = (path?: string) => {
     if (path) {
       navigate(path);
-      setIsMobileOpen(false); // Close mobile menu on navigation
+      setIsMobileOpen(false);
     }
   };
 
-  // Notify layout about sidebar open/close so main content can respond
   useEffect(() => {
     try {
       const ev = new CustomEvent("sidebar:change", {
@@ -209,7 +194,7 @@ const AdminSidebar: React.FC = () => {
       });
       window.dispatchEvent(ev);
     } catch (err) {
-      // ignore in environments that don't support CustomEvent
+      // ignore
     }
   }, [isSidebarOpen]);
 
@@ -234,28 +219,50 @@ const AdminSidebar: React.FC = () => {
 
   return (
     <>
-      {/* ===== MOBILE MENU BUTTON (Only show when sidebar is closed on mobile) ===== */}
-      {!isMobileOpen && (
-        <button
-          onClick={() => setIsMobileOpen(true)}
-          className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-lg"
-        >
-          <Menu className="w-6 h-6 text-gray-900 dark:text-white" />
-        </button>
-      )}
+      {/* ===== MOBILE HEADER BAR (Only visible on mobile) ===== */}
+      <header className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 shadow-sm">
+        <div className="flex items-center justify-between px-4 py-3">
+          {/* Logo */}
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-green-600 rounded-lg blur opacity-50" />
+              <div className="relative bg-gradient-to-br from-blue-600 to-green-600 p-2 rounded-lg">
+                <Vote className="w-5 h-5 text-white" />
+              </div>
+            </div>
+            <div>
+              <h2 className="text-base font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
+                VoteSecure
+              </h2>
+              <p className="text-[10px] text-gray-500 dark:text-gray-400 -mt-0.5">
+                Admin Panel
+              </p>
+            </div>
+          </div>
+
+          {/* Menu Button */}
+          <button
+            onClick={() => setIsMobileOpen(true)}
+            aria-label="Open menu"
+            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          >
+            <Menu className="w-6 h-6 text-gray-900 dark:text-white" />
+          </button>
+        </div>
+      </header>
 
       {/* ===== MOBILE OVERLAY ===== */}
       {isMobileOpen && (
         <div
           onClick={() => setIsMobileOpen(false)}
-          className="lg:hidden fixed inset-0 bg-black/50 z-30"
+          className="lg:hidden fixed inset-0 bg-black/50 z-40 backdrop-blur-sm"
         />
       )}
 
       {/* ===== SIDEBAR ===== */}
       <aside
         className={`
-          fixed top-0 left-0 h-full bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 z-40
+          fixed top-0 left-0 h-full bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 z-50
           transition-all duration-300 ease-in-out
           ${isSidebarOpen ? "w-68" : "w-20"}
           ${
@@ -273,13 +280,7 @@ const AdminSidebar: React.FC = () => {
                 <div className="relative">
                   <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-green-600 rounded-lg blur opacity-50" />
                   <div className="relative bg-gradient-to-br from-blue-600 to-green-600 p-2 rounded-lg">
-                    <Vote
-                      onClick={() => {
-                        console.log("Clicked");
-                        setIsSidebarOpen(true);
-                      }}
-                      className="w-5 h-5 text-white"
-                    />
+                    <Vote className="w-5 h-5 text-white" />
                   </div>
                 </div>
                 <div>
@@ -303,22 +304,23 @@ const AdminSidebar: React.FC = () => {
               </div>
             )}
 
-            {/* Desktop toggle + Mobile close button */}
             {/* Desktop Collapse Toggle */}
             <button
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              aria-label={isSidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
               className="hidden lg:flex p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
             >
               {isSidebarOpen ? (
                 <X className="w-5 h-5 text-gray-600 dark:text-gray-400" />
               ) : (
-                <Menu className="w-5 h-5 hidden text-gray-600 dark:text-gray-400" />
+                <Menu className="w-5 h-5 text-gray-600 dark:text-gray-400" />
               )}
             </button>
 
             {/* Mobile Close Button */}
             <button
               onClick={() => setIsMobileOpen(false)}
+              aria-label="Close sidebar"
               className="lg:hidden p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
             >
               <X className="w-5 h-5 text-gray-600 dark:text-gray-400" />
@@ -464,6 +466,15 @@ const AdminSidebar: React.FC = () => {
           </div>
         </div>
       </aside>
+
+      {/* Add padding to body content on mobile to account for fixed header */}
+      <style>{`
+        @media (max-width: 1024px) {
+          body {
+            padding-top: 60px;
+          }
+        }
+      `}</style>
     </>
   );
 };
