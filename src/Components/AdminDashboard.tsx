@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 import {
   Users,
   Vote,
@@ -19,11 +19,15 @@ import {
 } from "lucide-react";
 import { useAuth } from "../Context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import useOnClickOutside from "../utils/useOnClickOutside";
 
 const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [menuOpen, setMenuOpen] = React.useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useOnClickOutside(menuRef, () => setMenuOpen(false));
 
   // ===== MOCK DATA (will come from Firebase later) =====
   const stats = [
@@ -461,7 +465,7 @@ const AdminDashboard: React.FC = () => {
       </div>
     {/* ===== FLOATING ACTION BUTTON WITH MENU ===== */}
     <div className="fixed bottom-6 right-6 z-50 group">
-  <div className="relative">
+  <div ref={menuRef} className="relative">
     {/* Quick Action Menu (appears on hover/click) */}
     <div className={`absolute bottom-20 right-0 flex flex-col gap-3 transition-all duration-300 ${menuOpen ? 'opacity-100 translate-y-0 pointer-events-auto' : 'opacity-0 translate-y-4 pointer-events-none'} group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto`}>
       {/* Create Election */}

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import {
   Vote,
   Clock,
@@ -16,12 +16,16 @@ import {
 import { useAuth } from '../Context/AuthContext';
 import { useElections } from '../Context/ElectionContext';
 import { useNavigate } from 'react-router-dom';
+import useOnClickOutside from '../utils/useOnClickOutside';
 
 const VoterDashboard: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { elections } = useElections();
   const [menuOpen, setMenuOpen] = React.useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useOnClickOutside(menuRef, () => setMenuOpen(false));
 
   // ===== CALCULATE REAL STATS =====
   const now = new Date();
@@ -321,7 +325,7 @@ const VoterDashboard: React.FC = () => {
       </div>
     {/* ===== FLOATING ACTION BUTTON WITH MENU ===== */}
     <div className="fixed bottom-6 right-6 z-50 group">
-      <div className="relative">
+      <div ref={menuRef} className="relative">
         {/* Quick Action Menu (appears on hover/click) */}
         <div className={`absolute bottom-20 right-0 flex flex-col gap-3 transition-all duration-300 ${menuOpen ? 'opacity-100 translate-y-0 pointer-events-auto' : 'opacity-0 translate-y-4 pointer-events-none'} group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto`}>
           {/* Active Elections */}
@@ -344,7 +348,7 @@ const VoterDashboard: React.FC = () => {
             <div className="absolute -inset-2 bg-gradient-to-r from-purple-600 to-purple-500 rounded-full blur-lg opacity-0 group-hover/item:opacity-60 transition" />
             <div className="relative flex items-center gap-3 bg-white dark:bg-gray-900 border-2 border-purple-500 text-purple-600 dark:text-purple-400 pl-4 pr-16 py-3 rounded-full shadow-xl hover:shadow-2xl hover:scale-110 transition-all duration-200">
               <PanelsTopLeft className="w-5 h-5" />
-              <span className="font-bold text-sm whitespace-nowrap">Apply</span>
+              <span className="font-bold text-sm whitespace-nowrap">Applications</span>
             </div>
           </button>
 
