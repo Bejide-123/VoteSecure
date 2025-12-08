@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { supabase } from "../lib/supabase";
 
 // ===== TYPE DEFINITIONS =====
-interface Position {
+export default interface Position {
   title: string;
   description: string;
   max_candidates: number;
@@ -29,7 +29,7 @@ interface Election {
   show_live_results: boolean;
   positions: Position[];
   voters: number; // Array of voter IDs
-  status: "active" | "completed" | "archived";
+  status: "draft" | "scheduled" | "active" | "paused" | "completed" | "ended_early";
   created_at?: string; // optional
 }
 
@@ -38,6 +38,7 @@ interface ElectionContextType {
   loading: boolean;
   fetchElections: () => Promise<void>;
   getElectionById: (id: string) => Election | undefined;
+  updateElectionStatus: (electionId: string, newStatus: Election['status']) => Promise<void>;
 //   createElection: (data: Partial<Election>) => Promise<Election | null>;
   updateElection: (id: string, updates: Partial<Election>) => Promise<boolean>;
   deleteElection: (id: string) => Promise<boolean>;
@@ -139,6 +140,42 @@ export const ElectionProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  // Update Election Status
+  const updateElectionStatus = async (electionId: string, newStatus: Election['status']) => {
+    try {
+      const updateData: any = {
+        status: newStatus,
+        updated_at: new Date().toISOString(),
+      };
+
+      // If ending early, set the voting_end_date to now
+      if (newStatus === 'ended_early') {
+        updateData.voting_end_date = new Date().toISOString();
+      }
+
+      const { error } = await supabase
+        .from('elections')
+        .update(updateData)
+        .eq('id', electionId);
+
+      if (error) throw error;
+
+      // Update local state immediately
+      setElections(prev =>
+        prev.map(election =>
+          election.id === electionId
+            ? { ...election, status: newStatus }
+            : election
+        )
+      );
+
+      return Promise.resolve();
+    } catch (error) {
+      console.error('Error updating election status:', error);
+      throw error;
+    }
+  };
+
   // Delete election
   const deleteElection = async (id: string): Promise<boolean> => {
     try {
@@ -168,6 +205,7 @@ export const ElectionProvider = ({ children }: { children: ReactNode }) => {
 //     createElection,
     updateElection,
     deleteElection,
+    updateElectionStatus,
     refreshElections,
   };
 
