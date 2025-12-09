@@ -30,13 +30,14 @@ const VoterDashboard: React.FC = () => {
   // ===== CALCULATE REAL STATS =====
   const now = new Date();
   const activeCount = elections.filter(e => {
-    const appEnd = new Date(e.application_end_date);
-    return now <= appEnd;
+    const start = new Date(e.voting_start_date);
+    const end = new Date(e.voting_end_date);
+    return start <= now && now <= end;
   }).length;
 
   const upcomingCount = elections.filter(e => {
-    const appStart = new Date(e.application_start_date);
-    return now < appStart;
+    const start = new Date(e.voting_start_date);
+    return now < start;
   }).length;
 
   const stats = [

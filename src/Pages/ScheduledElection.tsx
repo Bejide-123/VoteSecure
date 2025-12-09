@@ -27,8 +27,7 @@ const ScheduledElections: React.FC = () => {
   const scheduledElections = useMemo(() => {
     return elections.filter(
       (election) =>
-        election.status === "active" &&
-        new Date(election.voting_start_date) > new Date()
+        election.status === "scheduled"
     );
   }, [elections]);
 

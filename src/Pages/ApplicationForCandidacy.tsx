@@ -32,10 +32,14 @@ interface Application {
   position_title: string;
   manifesto: string;
   campaign_promises: string;
-  profile_image_url: string;
+  profile_image_url?: string;
   status: "pending" | "approved" | "rejected";
   rejection_reason?: string;
   applied_at: string;
+  applicant_phone: string;
+  applicant_level: string;
+  applicant_cgpa: string;
+  applicant_qualifications: string;
 }
 
 const ApplicationsPage: React.FC = () => {
@@ -47,7 +51,9 @@ const ApplicationsPage: React.FC = () => {
   // console.log("User:", user);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedElection, setSelectedElection] = useState<any>(null);
-  const [selectedPosition, setSelectedPosition] = useState<Position | null>(null);
+  const [selectedPosition, setSelectedPosition] = useState<Position | null>(
+    null
+  );
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [myApplications, setMyApplications] = useState<Application[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -56,6 +62,10 @@ const ApplicationsPage: React.FC = () => {
     manifesto: "",
     campaign_promises: "",
     profile_image_url: "",
+    phone: "",
+    level: "",
+    cgpa: "",
+    qualifications: "",
   });
 
   // Fetch user's applications
@@ -73,7 +83,7 @@ const ApplicationsPage: React.FC = () => {
 
       if (error) throw error;
 
-      const applicationsWithTitles = data?.map((app: any) => {
+      const applicationsWithTitles: Application[] = data?.map((app: Application) => {
         const election = elections.find((e) => e.id === app.election_id);
         return {
           ...app,
@@ -90,31 +100,46 @@ const ApplicationsPage: React.FC = () => {
   // Filter elections open for applications
   const now = new Date();
 
-const openElections = elections.filter((election) => {
-  const appStart = new Date(election.application_start_date);
-  const appEnd = new Date(election.application_end_date);
-  const matchesSearch = election.title.toLowerCase().includes(searchQuery.toLowerCase());
-  return now >= appStart && now <= appEnd && matchesSearch;
-});
+  const openElections = elections.filter((election) => {
+    const appStart = new Date(election.application_start_date);
+    const appEnd = new Date(election.application_end_date);
+    const matchesSearch = election.title
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase());
+    return now >= appStart && now <= appEnd && matchesSearch;
+  });
 
-const upcomingElections = elections
+  const upcomingElections = elections
     .filter((election) => {
       const appStart = new Date(election.application_start_date);
-      const matchesSearch = election.title.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesSearch = election.title
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase());
       return now < appStart && matchesSearch;
     })
-    .sort((a, b) => new Date(a.application_start_date).getTime() - new Date(b.application_start_date).getTime());
+    .sort(
+      (a, b) =>
+        new Date(a.application_start_date).getTime() -
+        new Date(b.application_start_date).getTime()
+    );
 
   const combinedElections = [
-    ...openElections.map(election => ({ election, status: 'open' })),
-    ...upcomingElections.map(election => ({ election, status: 'upcoming' }))
+    ...openElections.map((election) => ({ election, status: "open" })),
+    ...upcomingElections.map((election) => ({ election, status: "upcoming" })),
   ];
-
 
   const handleOpenModal = (election: any, position: Position) => {
     setSelectedElection(election);
     setSelectedPosition(position);
-    setFormData({ manifesto: "", campaign_promises: "", profile_image_url: "" });
+    setFormData({
+      manifesto: "",
+      campaign_promises: "",
+      profile_image_url: "",
+      phone: "",
+      level: "",
+      cgpa: "",
+      qualifications: "",
+    });
     setIsModalOpen(true);
   };
 
@@ -122,7 +147,15 @@ const upcomingElections = elections
     setIsModalOpen(false);
     setSelectedElection(null);
     setSelectedPosition(null);
-    setFormData({ manifesto: "", campaign_promises: "", profile_image_url: "" });
+    setFormData({
+      manifesto: "",
+      campaign_promises: "",
+      profile_image_url: "",
+      phone: "",
+      level: "",
+      cgpa: "",
+      qualifications: "",
+    });
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -155,8 +188,14 @@ const upcomingElections = elections
   };
 
   const handleSubmit = async () => {
-    if (!formData.manifesto.trim()) {
-      alert("Please write your manifesto");
+    if (
+      !formData.manifesto.trim() ||
+      !formData.qualifications.trim() ||
+      !formData.phone.trim() ||
+      !formData.level ||
+      !formData.cgpa
+    ) {
+      alert("Please fill all required fields.");
       return;
     }
 
@@ -169,19 +208,24 @@ const upcomingElections = elections
           user_id: user?.uid,
           applicant_name: user?.fullName,
           applicant_email: user?.email,
-          applicant_phone: "",
+          applicant_phone: formData.phone,
           applicant_department: user?.department || "",
-          applicant_level: "",
+          applicant_level: formData.level,
+          applicant_cgpa: formData.cgpa,
+          applicant_qualifications: formData.qualifications,
           manifesto: formData.manifesto,
           campaign_promises: formData.campaign_promises,
-          profile_image_url: formData.profile_image_url || user?.selfieUrl || "",
+          profile_image_url:
+            formData.profile_image_url || user?.selfieUrl || "",
           status: "pending",
         },
       ]);
 
       if (error) throw error;
 
-      alert("Application submitted successfully! Await approval from the electoral officer.");
+      alert(
+        "Application submitted successfully! Await approval from the electoral officer."
+      );
       handleCloseModal();
       fetchMyApplications();
     } catch (error: any) {
@@ -302,146 +346,188 @@ const upcomingElections = elections
           </div>
         ) : (
           <div className="grid md:grid-cols-2 gap-8">
-  {combinedElections.map(({ election, status }, index) => {
-    const appEndDate = new Date(election.application_end_date);
-    const daysLeft = Math.ceil(
-      (appEndDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
-    );
+            {combinedElections.map(({ election, status }, index) => {
+              const appEndDate = new Date(election.application_end_date);
+              const daysLeft = Math.ceil(
+                (appEndDate.getTime() - new Date().getTime()) /
+                  (1000 * 60 * 60 * 24)
+              );
 
-    return (
-      <div
-        key={election.id || index}
-        className="group relative bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300"
-      >
-        {/* Gradient Border */}
-        <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-600 to-green-600 rounded-2xl blur opacity-0 group-hover:opacity-30 transition duration-300 pointer-events-none" />
+              return (
+                <div
+                  key={election.id || index}
+                  className="group relative bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300"
+                >
+                  {/* Gradient Border */}
+                  <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-600 to-green-600 rounded-2xl blur opacity-0 group-hover:opacity-30 transition duration-300 pointer-events-none" />
 
-        {/* Status Banner */}
-        <div className={`
+                  {/* Status Banner */}
+                  <div
+                    className={`
           px-4 py-2
-          ${status === 'open' ? 'bg-gradient-to-r from-orange-500 to-red-500' : ''}
-          ${status === 'upcoming' ? 'bg-gradient-to-r from-purple-500 to-pink-500' : ''}
-          ${status === 'completed' ? 'bg-gray-500' : ''}
-        `}>
-          <div className="flex items-center justify-between text-white text-sm font-semibold">
-            <div className="flex items-center gap-2">
-              <div className={`w-2 h-2 rounded-full bg-white ${status === 'open' ? 'animate-pulse' : ''}`} />
-              <span>
-                {status === 'open' && 'Open Now'}
-                {status === 'upcoming' && 'Coming Soon'}
-                {status === 'completed' && 'Ended'}
-              </span>
-            </div>
-            <div className="flex items-center gap-1">
-              <Clock className="w-3 h-3" />
-              <span className="text-xs">{status === 'open' ? `${daysLeft} days left` : ''} </span>
-            </div>
-          </div>
-        </div>
+          ${
+            status === "open"
+              ? "bg-gradient-to-r from-orange-500 to-red-500"
+              : ""
+          }
+          ${
+            status === "upcoming"
+              ? "bg-gradient-to-r from-purple-500 to-pink-500"
+              : ""
+          }
+          ${status === "completed" ? "bg-gray-500" : ""}
+        `}
+                  >
+                    <div className="flex items-center justify-between text-white text-sm font-semibold">
+                      <div className="flex items-center gap-2">
+                        <div
+                          className={`w-2 h-2 rounded-full bg-white ${
+                            status === "open" ? "animate-pulse" : ""
+                          }`}
+                        />
+                        <span>
+                          {status === "open" && "Open Now"}
+                          {status === "upcoming" && "Coming Soon"}
+                          {status === "completed" && "Ended"}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        <span className="text-xs">
+                          {status === "open" ? `${daysLeft} days left` : ""}{" "}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
 
-        {/* Card Content */}
-        <div className="p-6 flex flex-col flex-1">
-          <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2">
-            {election.title}
-          </h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">
-            {election.description}
-          </p>
+                  {/* Card Content */}
+                  <div className="p-6 flex flex-col flex-1">
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2">
+                      {election.title}
+                    </h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">
+                      {election.description}
+                    </p>
 
-          {/* Stats Grid */}
-          <div className="grid grid-cols-2 gap-3 mb-4">
-            <div className="bg-blue-50 dark:bg-blue-950/30 rounded-lg p-3 text-center">
-              <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{election.positions?.length}</p>
-              <p className="text-xs text-gray-600 dark:text-gray-400">Positions</p>
-            </div>
-            <div className="bg-green-50 dark:bg-green-950/30 rounded-lg p-3 text-center">
-              <p className="text-2xl font-bold text-green-600 dark:text-green-400">
-                {status === 'upcoming' ? 'TBA' : (election.voters / 1000).toFixed(1) + 'K'}
-              </p>
-              <p className="text-xs text-gray-600 dark:text-gray-400">Voters</p>
-            </div>
-          </div>
+                    {/* Stats Grid */}
+                    <div className="grid grid-cols-2 gap-3 mb-4">
+                      <div className="bg-blue-50 dark:bg-blue-950/30 rounded-lg p-3 text-center">
+                        <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                          {election.positions?.length}
+                        </p>
+                        <p className="text-xs text-gray-600 dark:text-gray-400">
+                          Positions
+                        </p>
+                      </div>
+                      <div className="bg-green-50 dark:bg-green-950/30 rounded-lg p-3 text-center">
+                        <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+                          {status === "upcoming"
+                            ? "TBA"
+                            : (election.voters / 1000).toFixed(1) + "K"}
+                        </p>
+                        <p className="text-xs text-gray-600 dark:text-gray-400">
+                          Voters
+                        </p>
+                      </div>
+                    </div>
 
-          {/* Positions */}
-          <div className="border-t border-gray-200 dark:border-gray-800 pt-4">
-            <h4 className="font-semibold text-gray-900 dark:text-white mb-3">Available Positions:</h4>
-            {!election.positions || election.positions.length === 0 ? (
-              <p className="text-sm text-gray-500">No positions available</p>
-            ) : (
-            <div className="grid grid-cols-1 gap-3">
+                    {/* Positions */}
+                    <div className="border-t border-gray-200 dark:border-gray-800 pt-4">
+                      <h4 className="font-semibold text-gray-900 dark:text-white mb-3">
+                        Available Positions:
+                      </h4>
+                      {!election.positions ||
+                      election.positions.length === 0 ? (
+                        <p className="text-sm text-gray-500">
+                          No positions available
+                        </p>
+                      ) : (
+                        <div className="grid grid-cols-1 gap-3">
+                          {election.positions.map(
+                            (position: Position, index: number) => {
+                              const applied = myApplications.some(
+                                (app) =>
+                                  app.election_id === election.id &&
+                                  app.position_title === position.title // ✅ Correct property
+                              );
 
-{election.positions.map((position: Position, index: number) => {
-  const applied = myApplications.some(
-    (app) =>
-      app.election_id === election.id &&
-      app.position_title === position.title  // ✅ Correct property
-  );
-
-  return (
-    <button
-      key={`${election.id}-${position.title}-${index}`}  // ✅ Changed from position.name
-      type="button"
-      onClick={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        if (!applied && status === 'open') {
-          handleOpenModal(election, position);
-        }
-      }}
-      disabled={applied || status !== 'open'}  // ✅ Disable if applied OR not open
-      className={`
+                              return (
+                                <button
+                                  key={`${election.id}-${position.title}-${index}`} // ✅ Changed from position.name
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    if (!applied && status === "open") {
+                                      handleOpenModal(election, position);
+                                    }
+                                  }}
+                                  disabled={applied || status !== "open"} // ✅ Disable if applied OR not open
+                                  className={`
         w-full flex items-center justify-between p-4 border rounded-xl transition-all group
-        ${applied || status !== 'open' ? 'opacity-60 cursor-not-allowed bg-gray-100 dark:bg-gray-800' : 'bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-950/30 dark:to-blue-950/30 hover:shadow-lg cursor-pointer'}
+        ${
+          applied || status !== "open"
+            ? "opacity-60 cursor-not-allowed bg-gray-100 dark:bg-gray-800"
+            : "bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-950/30 dark:to-blue-950/30 hover:shadow-lg cursor-pointer"
+        }
       `}
-    >
-      <div className="text-left">
-        <p className={`font-bold text-gray-900 dark:text-white ${status === 'open' && !applied ? 'group-hover:text-purple-600 dark:group-hover:text-purple-400' : ''}`}>
-          {position.title}
-        </p>
-        {position.description && (
-          <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-            {position.description}
-          </p>
+                                >
+                                  <div className="text-left">
+                                    <p
+                                      className={`font-bold text-gray-900 dark:text-white ${
+                                        status === "open" && !applied
+                                          ? "group-hover:text-purple-600 dark:group-hover:text-purple-400"
+                                          : ""
+                                      }`}
+                                    >
+                                      {position.title}
+                                    </p>
+                                    {position.description && (
+                                      <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                                        {position.description}
+                                      </p>
+                                    )}
+                                  </div>
+                                  <Award className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                                </button>
+                              );
+                            }
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Action Button */}
+                    <div className="mt-4">
+                      {status === "open" && (
+                        <div className="text-center py-3 bg-blue-50 dark:bg-blue-950/30 rounded-xl border-2 border-blue-200 dark:border-blue-800">
+                          <p className="text-sm font-semibold text-blue-700 dark:text-blue-400">
+                            <Award className="w-5 h-5 inline-block mr-2" />{" "}
+                            Apply Now
+                          </p>
+                        </div>
+                      )}
+                      {status === "upcoming" && (
+                        <button
+                          disabled
+                          className="w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 cursor-not-allowed"
+                        >
+                          <Clock className="w-5 h-5" />
+                          Applications Coming Soon
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         )}
-      </div>
-      <Award className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-    </button>
-  );
-})}
-            </div>
-            )}
-          </div>
-
-          {/* Action Button */}
-          <div className="mt-4">
-            {status === 'open' && (
-              <div className="text-center py-3 bg-blue-50 dark:bg-blue-950/30 rounded-xl border-2 border-blue-200 dark:border-blue-800">
-                <p className="text-sm font-semibold text-blue-700 dark:text-blue-400">
-                 <Award className="w-5 h-5 inline-block mr-2" /> Apply Now
-                </p>
-              </div>
-            )}
-            {status === 'upcoming' && (
-              <button
-                disabled
-                className="w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 cursor-not-allowed"
-              >
-                <Clock className="w-5 h-5" />
-                Applications Coming Soon
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  })}
-</div>)}
-
 
         {/* Application Modal */}
         {isModalOpen && selectedElection && selectedPosition && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-            <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto hide-scrollbar">
+            <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto hide-scrollbar">
               <div className="flex items-start justify-between mb-6">
                 <div>
                   <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
@@ -460,9 +546,10 @@ const upcomingElections = elections
               </div>
 
               <div className="space-y-4">
-                {/* Applicant Info */}
-                <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
-                  <h4 className="font-semibold text-gray-900 dark:text-white mb-3">
+                {/* Applicant Info (Read-only from user profile) */}
+                <div className="p-4 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-950/30 dark:to-purple-950/30 border border-blue-200 dark:border-blue-800 rounded-xl">
+                  <h4 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                    <User className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                     Your Information
                   </h4>
                   <div className="grid md:grid-cols-2 gap-3 text-sm">
@@ -481,34 +568,103 @@ const upcomingElections = elections
                     <div className="flex items-center gap-2">
                       <FileText className="w-4 h-4 text-gray-600 dark:text-gray-400" />
                       <span className="text-gray-600 dark:text-gray-400">
+                        ID: {user?.memberId}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <FileText className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                      <span className="text-gray-600 dark:text-gray-400">
                         {user?.department}
                       </span>
                     </div>
-                    <div className="flex.
-                    
-                     items-center gap-2">
-                      <Phone className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-                      <span className="text-gray-600 dark:text-gray-400"></span>
+                  </div>
+                </div>
+
+                {/* Phone Number */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                    Phone Number *
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                      <Phone className="w-5 h-5 text-gray-400" />
                     </div>
+                    <input
+                      type="tel"
+                      value={formData.phone}
+                      onChange={(e) =>
+                        setFormData({ ...formData, phone: e.target.value })
+                      }
+                      placeholder="e.g., +234 801 234 5678"
+                      className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 transition-all"
+                    />
+                  </div>
+                </div>
+
+                {/* Level & CGPA */}
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                      Current Level *
+                    </label>
+                    <select
+                      value={formData.level}
+                      onChange={(e) =>
+                        setFormData({ ...formData, level: e.target.value })
+                      }
+                      className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 transition-all"
+                    >
+                      <option value="">Select Level</option>
+                      <option value="100">100 Level</option>
+                      <option value="200">200 Level</option>
+                      <option value="300">300 Level</option>
+                      <option value="400">400 Level</option>
+                      <option value="500">500 Level</option>
+                      <option value="600">600 Level</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                      CGPA *
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      max="5.0"
+                      value={formData.cgpa}
+                      onChange={(e) =>
+                        setFormData({ ...formData, cgpa: e.target.value })
+                      }
+                      placeholder="e.g., 4.50"
+                      className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 transition-all"
+                    />
                   </div>
                 </div>
 
                 {/* Profile Photo */}
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                    Profile Photo (Optional)
+                    Profile Photo
                   </label>
                   <div className="flex items-center gap-4">
                     {formData.profile_image_url && (
                       <img
                         src={formData.profile_image_url}
                         alt="Profile"
-                        className="w-20 h-20 rounded-full object-cover border-2 border-gray-200 dark:border-gray-700"
+                        className="w-20 h-20 rounded-full object-cover border-4 border-purple-200 dark:border-purple-800 shadow-lg"
                       />
                     )}
-                    <label className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 transition-all">
-                      <Upload className="w-5 h-5" />
-                      {uploadingImage ? "Uploading..." : "Upload Photo"}
+                    <label className="flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-purple-100 to-blue-100 dark:from-purple-900/30 dark:to-blue-900/30 border border-purple-300 dark:border-purple-700 rounded-xl cursor-pointer hover:shadow-md transition-all">
+                      <Upload className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                      <span className="font-semibold text-purple-700 dark:text-purple-300">
+                        {uploadingImage
+                          ? "Uploading..."
+                          : formData.profile_image_url
+                          ? "Change Photo"
+                          : "Upload Photo"}
+                      </span>
                       <input
                         type="file"
                         accept="image/*"
@@ -518,6 +674,28 @@ const upcomingElections = elections
                       />
                     </label>
                   </div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                    Upload a clear, professional photo of yourself
+                  </p>
+                </div>
+
+                {/* Qualifications */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                    Qualifications *
+                  </label>
+                  <textarea
+                    value={formData.qualifications}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        qualifications: e.target.value,
+                      })
+                    }
+                    rows={4}
+                    placeholder="List your relevant qualifications, experience, and achievements... e.g., Class Representative (2023), Member of Debate Society, etc."
+                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 transition-all resize-none"
+                  />
                 </div>
 
                 {/* Manifesto */}
@@ -531,7 +709,7 @@ const upcomingElections = elections
                       setFormData({ ...formData, manifesto: e.target.value })
                     }
                     rows={6}
-                    placeholder="Why should students vote for you? What are your goals and vision..."
+                    placeholder="Why should students vote for you? What are your goals and vision for this position..."
                     className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 transition-all resize-none"
                   />
                 </div>
@@ -550,13 +728,13 @@ const upcomingElections = elections
                       })
                     }
                     rows={4}
-                    placeholder="What specific promises or commitments are you making..."
+                    placeholder="What specific promises or commitments are you making to the students..."
                     className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 transition-all resize-none"
                   />
                 </div>
 
                 {/* Submit Button */}
-                <div className="flex gap-3 pt-4">
+                <div className="flex gap-3 pt-4 border-t border-gray-200 dark:border-gray-800">
                   <button
                     onClick={handleCloseModal}
                     disabled={isSubmitting}
@@ -566,7 +744,14 @@ const upcomingElections = elections
                   </button>
                   <button
                     onClick={handleSubmit}
-                    disabled={isSubmitting || !formData.manifesto.trim()}
+                    disabled={
+                      isSubmitting ||
+                      !formData.manifesto.trim() ||
+                      !formData.qualifications.trim() ||
+                      !formData.phone.trim() ||
+                      !formData.level ||
+                      !formData.cgpa
+                    }
                     className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl font-semibold hover:shadow-xl hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isSubmitting ? (

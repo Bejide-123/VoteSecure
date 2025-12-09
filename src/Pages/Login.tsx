@@ -131,12 +131,13 @@ const LoginPage: React.FC = () => {
                     <Mail className="w-5 h-5 text-gray-400" />
                   </div>
                   <input
-                    type="email"
+                    type="password"
                     id="email"
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
-                    placeholder="you@school.edu"
+                    placeholder="••••••••"
+                    autoComplete="off"
                     className={`
                       w-full pl-12 pr-4 py-3 rounded-xl border transition-all duration-200
                       bg-gray-50 dark:bg-gray-800

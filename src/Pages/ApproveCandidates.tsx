@@ -1,9 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   UserCheck,
   X,
   CheckCircle2,
-//   AlertCircle,
+  //   AlertCircle,
   Eye,
   Filter,
   Search,
@@ -18,7 +18,9 @@ import {
   //   ChevronRight,
   Clock,
   Ban,
+  Loader,
 } from "lucide-react";
+import { useApplications } from "../Context/ApplicationContext";
 import AdminLayout from "./AdminLayout";
 
 // ===== TYPE DEFINITIONS =====
@@ -46,6 +48,13 @@ interface ApprovalModal {
 }
 
 const ApproveCandidates: React.FC = () => {
+  const {
+    pendingApplications,
+    loading,
+    approveApplication,
+    rejectApplication,
+    fetchApplications,
+  } = useApplications();
   const [searchQuery, setSearchQuery] = useState("");
   const [filterElection, setFilterElection] = useState<string>("all");
   const [filterPosition, setFilterPosition] = useState<string>("all");
@@ -61,104 +70,34 @@ const ApproveCandidates: React.FC = () => {
     null
   );
 
+  useEffect(() => {
+    fetchApplications();
+  }, []);
+
   // ===== MOCK DATA =====
-  const candidates: Candidate[] = [
-    {
-      id: "1",
-      fullName: "Chioma Okafor",
-      email: "chioma.okafor@student.edu",
-      phone: "+234 803 456 7890",
-      memberId: "2020/CS/001",
-      department: "Computer Science",
-      level: "400 Level",
-      electionTitle: "Student Union Elections 2024",
-      positionAppliedFor: "President",
-      manifesto:
-        "I promise to bring positive change to our campus by improving student welfare, enhancing campus facilities, and ensuring transparent leadership. My three-point agenda includes: 1) Better hostel conditions, 2) More study resources, 3) Stronger student voice in university decisions.",
-      qualifications:
-        "Former Class Representative (3 years), Sports Council Member, 3.8 GPA, Leadership Training Certificate",
-      photoUrl: "https://api.dicebear.com/7.x/avataaars/svg?seed=Chioma",
-      appliedAt: "2024-11-10T14:30:00",
-      gpa: "3.8",
-    },
-    {
-      id: "2",
-      fullName: "Ahmed Bello",
-      email: "ahmed.bello@student.edu",
-      phone: "+234 805 123 4567",
-      memberId: "2019/ENG/045",
-      department: "Engineering",
-      level: "500 Level",
-      electionTitle: "Student Union Elections 2024",
-      positionAppliedFor: "Vice President",
-      manifesto:
-        "As your VP, I will work tirelessly to bridge the gap between students and administration. Focus areas: Enhanced security on campus, better internet connectivity, and creating more job opportunities through industry partnerships.",
-      qualifications:
-        "Engineering Society President, Dean's List (4 semesters), Campus Security Committee Member",
-      photoUrl: "https://api.dicebear.com/7.x/avataaars/svg?seed=Ahmed",
-      appliedAt: "2024-11-10T15:45:00",
-      gpa: "3.6",
-    },
-    {
-      id: "3",
-      fullName: "Grace Adeyemi",
-      email: "grace.adeyemi@student.edu",
-      phone: "+234 807 890 1234",
-      memberId: "2021/MED/089",
-      department: "Medicine",
-      level: "300 Level",
-      electionTitle: "Student Union Elections 2024",
-      positionAppliedFor: "Secretary General",
-      manifesto:
-        "Efficient documentation and communication will be my priority. I'll ensure all student concerns are properly recorded and addressed. Goals: Digital record keeping, monthly town halls, and transparent communication channels.",
-      qualifications:
-        "Medical Students Association Secretary, Volunteer Coordinator, First Class Student",
-      photoUrl: "https://api.dicebear.com/7.x/avataaars/svg?seed=Grace",
-      appliedAt: "2024-11-11T09:15:00",
-      gpa: "4.0",
-    },
-    {
-      id: "4",
-      fullName: "Ibrahim Yusuf",
-      email: "ibrahim.yusuf@student.edu",
-      phone: "+234 806 234 5678",
-      memberId: "2020/LAW/023",
-      department: "Law",
-      level: "400 Level",
-      electionTitle: "Faculty Representative Elections",
-      positionAppliedFor: "Faculty Rep - Law",
-      manifesto:
-        "I will be the voice of law students in university decisions. My commitment: Better library resources, more moot court sessions, and regular feedback from faculty to administration.",
-      qualifications:
-        "Moot Court Champion 2023, Law Society Vice President, Dean's List",
-      photoUrl: "https://api.dicebear.com/7.x/avataaars/svg?seed=Ibrahim",
-      appliedAt: "2024-11-11T10:30:00",
-      gpa: "3.7",
-    },
-    {
-      id: "5",
-      fullName: "Blessing Nwafor",
-      email: "blessing.nwafor@student.edu",
-      phone: "+234 809 876 5432",
-      memberId: "2022/BIO/112",
-      department: "Biology",
-      level: "200 Level",
-      electionTitle: "Sports Council Elections",
-      positionAppliedFor: "Sports Director",
-      manifesto:
-        "Sports unite us all! I'll organize more inter-departmental competitions, upgrade sports facilities, and ensure every student has access to fitness programs. Let's make our campus the most athletic!",
-      qualifications:
-        "Track & Field Captain, Intramural Coordinator, Sports Management Course",
-      photoUrl: "https://api.dicebear.com/7.x/avataaars/svg?seed=Blessing",
-      appliedAt: "2024-11-12T11:45:00",
-      gpa: "3.4",
-    },
-  ];
+  const candidates: Candidate[] = pendingApplications.map((app) => ({
+    id: app.id,
+    fullName: app.applicant_name,
+    email: app.applicant_email,
+    phone: app.applicant_phone,
+    memberId: app.applicant_member_id || "N/A",
+    department: app.applicant_department || "N/A",
+    level: app.applicant_level,
+    electionTitle: app.election_id, // This should be dynamic
+    positionAppliedFor: app.position_title,
+    manifesto: app.manifesto,
+    qualifications: app.qualifications,
+    photoUrl: app.profile_image_url,
+    appliedAt: app.applied_at,
+    gpa: app.applicant_cgpa.toString(),
+  }));
 
   // Get unique elections and positions
-  const elections = Array.from(new Set(candidates.map((c) => c.electionTitle)));
+  const elections = Array.from(
+    new Set(pendingApplications.map((c) => c.election_id))
+  );
   const positions = Array.from(
-    new Set(candidates.map((c) => c.positionAppliedFor))
+    new Set(pendingApplications.map((c) => c.position_title))
   );
 
   // ===== FILTER CANDIDATES =====
@@ -213,18 +152,11 @@ const ApproveCandidates: React.FC = () => {
 
     setIsProcessing(true);
     try {
-      // TODO: Send to Supabase
-      console.log(
-        `${
-          approvalModal.action === "approve" ? "Approving" : "Rejecting"
-        } candidate:`,
-        approvalModal.candidate.id,
-        "Feedback:",
-        feedback
-      );
-
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      if (approvalModal.action === "approve") {
+        await approveApplication(approvalModal.candidate.id);
+      } else {
+        await rejectApplication(approvalModal.candidate.id, feedback);
+      }
 
       alert(
         `Candidate ${
@@ -255,8 +187,15 @@ const ApproveCandidates: React.FC = () => {
 
     setIsProcessing(true);
     try {
-      console.log(`Bulk ${action}:`, selectedCandidates);
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      await Promise.all(
+        selectedCandidates.map((id) => {
+          if (action === "approve") {
+            return approveApplication(id);
+          } else {
+            return rejectApplication(id, "Bulk rejection");
+          }
+        })
+      );
       alert(
         `${selectedCandidates.length} candidate(s) ${action}d successfully!`
       );
@@ -283,6 +222,16 @@ const ApproveCandidates: React.FC = () => {
     return `${diffDays} days ago`;
   };
 
+  if (loading) {
+    return (
+      <AdminLayout>
+        <div className="flex justify-center items-center h-96">
+          <Loader className="w-8 h-8 animate-spin" />
+        </div>
+      </AdminLayout>
+    );
+  }
+
   return (
     <AdminLayout>
       <div className="space-y-8">
@@ -304,7 +253,7 @@ const ApproveCandidates: React.FC = () => {
                 Pending
               </p>
               <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
-                {candidates.length}
+                {pendingApplications.length}
               </p>
             </div>
             <div className="px-4 py-2 rounded-xl bg-blue-100 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800">
@@ -460,7 +409,7 @@ const ApproveCandidates: React.FC = () => {
                         </h3>
                         <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
                           {candidate.memberId} • {candidate.department} •{" "}
-                          {candidate.level}
+                          {candidate.level} Level
                         </p>
                         <div className="flex flex-wrap items-center gap-2">
                           <span className="px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-xs font-bold">
