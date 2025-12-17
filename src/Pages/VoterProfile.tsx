@@ -34,7 +34,7 @@ interface UserProfile {
   department: string;
   level: string;
   dateOfBirth: string;
-  registeredAt: string;
+  registeredAt?: string;
   profileImage: string;
 }
 
@@ -50,7 +50,7 @@ const VoterProfile: React.FC = () => {
     department: user?.department || "Computer Science",
     level: "300 Level",
     dateOfBirth: "2003-05-15",
-    registeredAt: user?.createdAt ,
+    // registeredAt: user?.createdAt || new Date().toISOString(),
     profileImage: user?.selfieUrl || "https://api.dicebear.com/7.x/avataaars/svg?seed=Adebayo",
   });
 
@@ -133,15 +133,15 @@ const VoterProfile: React.FC = () => {
     }
   };
 
-  const getTimeAgo = (date: string): string => {
-    const diffMs = new Date().getTime() - new Date(date).getTime();
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-    if (diffDays === 0) return "Today";
-    if (diffDays === 1) return "Yesterday";
-    if (diffDays < 7) return `${diffDays} days ago`;
-    if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
-    return `${Math.floor(diffDays / 30)} months ago`;
-  };
+  // const getTimeAgo = (date: string): string => {
+  //   const diffMs = new Date().getTime() - new Date(date).getTime();
+  //   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  //   if (diffDays === 0) return "Today";
+  //   if (diffDays === 1) return "Yesterday";
+  //   if (diffDays < 7) return `${diffDays} days ago`;
+  //   if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
+  //   return `${Math.floor(diffDays / 30)} months ago`;
+  // };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 p-3 sm:p-4 md:p-6 pb-24">

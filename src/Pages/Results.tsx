@@ -596,7 +596,7 @@ const ResultsAnalysis: React.FC = () => {
                       {departmentVoteDistribution.map(( index) => (
                         <Cell
                           key={`cell-${index}`}
-                          fill={COLORS[index % COLORS.length]}
+                          fill={COLORS[index.change % COLORS.length]}
                         />
                       ))}
                     </Bar>

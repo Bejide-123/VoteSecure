@@ -23,7 +23,6 @@ import {
   Trophy,
   Activity,
   Zap,
-  Menu,
 } from "lucide-react";
 
 interface VoteRecord {
