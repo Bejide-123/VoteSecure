@@ -393,7 +393,6 @@ const ApproveCandidates: React.FC = () => {
                     className="mt-1 w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
                   />
 
-                  {/* Photo */}
                   <img
                     src={candidate.photoUrl}
                     alt={candidate.fullName}

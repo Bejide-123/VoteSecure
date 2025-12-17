@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
+
 // ===== TYPES =====
 interface Candidate {
   id: string;
