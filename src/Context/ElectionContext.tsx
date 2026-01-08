@@ -11,7 +11,7 @@ export default interface Position {
 }
 
 interface Election {
-  id: string; // ADDED
+  id: string;
   title: string;
   description: string;
   election_type: "general" | "departmental" | "faculty" | "club";
@@ -28,18 +28,18 @@ interface Election {
   send_sms_notifications: boolean;
   show_live_results: boolean;
   positions: Position[];
-  voters: number; // Array of voter IDs
+  voters: number;
   status: "draft" | "scheduled" | "active" | "paused" | "completed" | "ended_early";
-  created_at?: string; // optional
+  created_at?: string;
 }
 
 interface ElectionContextType {
   elections: Election[];
   loading: boolean;
   fetchElections: () => Promise<void>;
+  fetchElectionById: (id: string) => Promise<Election | null>;
   getElectionById: (id: string) => Election | undefined;
   updateElectionStatus: (electionId: string, newStatus: Election['status']) => Promise<void>;
-//   createElection: (data: Partial<Election>) => Promise<Election | null>;
   updateElection: (id: string, updates: Partial<Election>) => Promise<boolean>;
   deleteElection: (id: string) => Promise<boolean>;
   refreshElections: () => Promise<void>;
@@ -54,7 +54,7 @@ export const ElectionProvider = ({ children }: { children: ReactNode }) => {
   const [elections, setElections] = useState<Election[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
 
-  // Fetch elections
+  // Fetch all elections
   const fetchElections = async () => {
     try {
       setLoading(true);
@@ -68,7 +68,7 @@ export const ElectionProvider = ({ children }: { children: ReactNode }) => {
 
       // Parse positions JSON string into array
       const electionsWithParsedPositions = (data || []).map((election: any) => {
-        let positions = [];
+        let positions: Position[] = [];
         try {
           if (election.positions && typeof election.positions === 'string') {
             positions = JSON.parse(election.positions);
@@ -79,7 +79,15 @@ export const ElectionProvider = ({ children }: { children: ReactNode }) => {
           console.error("Error parsing positions for election", election.id, err);
           positions = [];
         }
-        return { ...election, positions };
+        
+        // Count voters (you'll need to fetch this from votes table if you have one)
+        const voters = 0; // Placeholder - update this if you have a votes table
+        
+        return { 
+          ...election, 
+          positions,
+          voters 
+        };
       });
 
       setElections(electionsWithParsedPositions);
@@ -90,31 +98,80 @@ export const ElectionProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // Get Election by ID
+  // Fetch single election by ID from database
+  const fetchElectionById = async (id: string): Promise<Election | null> => {
+    try {
+      setLoading(true);
+
+      const { data, error } = await supabase
+        .from("elections")
+        .select("*")
+        .eq("id", id)
+        .single();
+
+      if (error) throw error;
+
+      // Parse positions
+      let positions: Position[] = [];
+      try {
+        if (data.positions && typeof data.positions === 'string') {
+          positions = JSON.parse(data.positions);
+        } else if (data.positions && Array.isArray(data.positions)) {
+          positions = data.positions;
+        }
+      } catch (err) {
+        console.error("Error parsing positions:", err);
+        positions = [];
+      }
+
+      // Count voters (you can update this to fetch from votes table)
+      const voters = 0; // Placeholder
+
+      const election: Election = {
+        id: data.id,
+        title: data.title,
+        description: data.description,
+        election_type: data.election_type,
+        organization: data.organization,
+        application_start_date: data.application_start_date,
+        application_end_date: data.application_end_date,
+        registration_start_date: data.registration_start_date,
+        registration_end_date: data.registration_end_date,
+        voting_start_date: data.voting_start_date,
+        voting_end_date: data.voting_end_date,
+        allow_voice_voting: data.allow_voice_voting,
+        require_face_verification: data.require_face_verification,
+        send_email_notifications: data.send_email_notifications,
+        send_sms_notifications: data.send_sms_notifications,
+        show_live_results: data.show_live_results,
+        positions: positions,
+        voters: voters,
+        status: data.status || 'draft',
+        created_at: data.created_at
+      };
+
+      // Update local cache
+      setElections(prev => {
+        const exists = prev.find(e => e.id === id);
+        if (exists) {
+          return prev.map(e => e.id === id ? election : e);
+        }
+        return [...prev, election];
+      });
+
+      return election;
+    } catch (error) {
+      console.error("Error fetching election by ID:", error);
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Get Election by ID from local state (cached)
   const getElectionById = (id: string) => {
     return elections.find((e) => e.id === id);
   };
-
-  // Create Election
-//   const createElection = async (
-//     electionData: Partial<Election>
-//   ): Promise<Election | null> => {
-//     try {
-//       const { data, error } = await supabase
-//         .from("elections")
-//         .insert(electionData)
-//         .select()
-//         .single();
-
-//       if (error) throw error;
-
-//       setElections((prev) => [data, ...prev]);
-//       return data;
-//     } catch (error) {
-//       console.error("Error creating election:", error);
-//       return null;
-//     }
-//   };
 
   // Update Election
   const updateElection = async (
@@ -201,8 +258,8 @@ export const ElectionProvider = ({ children }: { children: ReactNode }) => {
     elections,
     loading,
     fetchElections,
+    fetchElectionById, // Added
     getElectionById,
-//     createElection,
     updateElection,
     deleteElection,
     updateElectionStatus,

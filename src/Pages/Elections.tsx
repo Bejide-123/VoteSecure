@@ -456,7 +456,7 @@ const AllElectionsPage: React.FC = () => {
                     <div className="mt-auto">
                       {election.status === 'active' && (
                         <button 
-                          onClick={() => navigate(`/voter/elections/${election.id}`)}
+                          onClick={() => navigate(`/voter/elections/${election.id}/vote`, { state: { election } })}
                           className="w-full bg-gradient-to-r from-blue-600 to-emerald-600 text-white py-3.5 px-4 rounded-xl font-bold hover:shadow-xl hover:scale-105 transition-all duration-300 flex items-center justify-center gap-3 group/btn"
                         >
                           <Vote className="w-5 h-5" />
@@ -563,7 +563,7 @@ const AllElectionsPage: React.FC = () => {
                     <div className="lg:w-48">
                       {election.status === 'active' && (
                         <button 
-                          onClick={() => navigate(`/voter/elections/${election.id}`)}
+                          onClick={() => navigate(`/voter/elections/${election.id}/vote`, { state: { election } })}
                           className="w-full bg-gradient-to-r from-blue-600 to-emerald-600 text-white py-3 px-4 rounded-xl font-bold hover:shadow-lg hover:scale-105 transition-all duration-200 flex items-center justify-center gap-2 group/btn"
                         >
                           <Vote className="w-5 h-5" />
