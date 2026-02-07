@@ -10,6 +10,7 @@ import {
   Settings2,
   PanelsTopLeft,
   ChartColumnBig,
+  FileCheck
 } from "lucide-react";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "../Context/AuthContext";
@@ -68,6 +69,12 @@ const VoterSidebar: React.FC = () => {
       label: "Profile",
       icon: <User className="w-5 h-5" />,
       path: "/voter/profile",
+    },
+    {
+      id: "registrations",
+      label: "Registrations",
+      icon: <FileCheck className="w-5 h-5" />,
+      path: "/voter/registrations",
     },
     {
       id: "settings",

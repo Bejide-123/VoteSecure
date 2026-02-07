@@ -32,6 +32,7 @@ import MonitorElection from "./Pages/ManageElections";
 import EditElection from "./Pages/EditElections";
 import VoterResultsList from "./Pages/ElectionListResults";
 import VoterResultsDetail from "./Pages/ResultsDetails";
+import VoterRegistrationPage from "./Pages/VoterRegistration"
 
 const App = () => {
   return (
@@ -263,6 +264,16 @@ const App = () => {
             <ProtectedRoute>
               <VoterLayout>
                 <ApplyForCandidacy />
+              </VoterLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/voter/registrations"
+          element={
+            <ProtectedRoute>
+              <VoterLayout>
+                <VoterRegistrationPage/>
               </VoterLayout>
             </ProtectedRoute>
           }
