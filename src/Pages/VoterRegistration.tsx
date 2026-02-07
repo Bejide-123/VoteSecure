@@ -20,9 +20,40 @@ import {
   Mail,
   GraduationCap,
   BadgeCheck,
+  Phone,
+  FileText,
 } from "lucide-react";
 import { useAuth } from "../Context/AuthContext";
 import { useElections } from "../Context/ElectionContext";
+import { supabase } from "../lib/supabase";
+
+interface VoterRegistration {
+  id: string;
+  election_id: string;
+  user_id: string;
+  voter_name: string;
+  voter_email: string;
+  voter_phone: string;
+  voter_department: string;
+  voter_level: string;
+  student_id: string;
+  organization: string;
+  selfie_url?: string;
+  status: 'pending' | 'approved' | 'rejected';
+  registered_at: string;
+  reviewed_at?: string;
+  updated_at: string;
+}
+
+interface VoterRegistrationWithDetails extends VoterRegistration {
+  election_title?: string;
+  election_description?: string;
+  election_organization?: string;
+  voting_start_date?: string;
+  voting_end_date?: string;
+  registration_start_date?: string;
+  registration_end_date?: string;
+}
 
 interface Election {
   id: string;
@@ -44,15 +75,6 @@ interface Position {
   description: string;
 }
 
-interface Registration {
-  id: string;
-  election_id: string;
-  election_title: string;
-  registered_at: string;
-  status: "pending" | "approved" | "rejected";
-  rejection_reason?: string;
-}
-
 const VotesRegistrationPage: React.FC = () => {
   const { user } = useAuth();
   const { elections, loading: electionsLoading } = useElections();
@@ -60,33 +82,51 @@ const VotesRegistrationPage: React.FC = () => {
   const [selectedElection, setSelectedElection] = useState<Election | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [isRegistrationModalOpen, setIsRegistrationModalOpen] = useState(false);
-  const [myRegistrations, setMyRegistrations] = useState<Registration[]>([]);
+  const [myRegistrations, setMyRegistrations] = useState<VoterRegistrationWithDetails[]>([]);
   const [activeTab, setActiveTab] = useState<string>('open');
   const [registrationStep, setRegistrationStep] = useState<'confirm' | 'review'>('confirm');
   const [isRegistering, setIsRegistering] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  // Mock registrations data
+  // Fetch user's voter registrations
   useEffect(() => {
-    // Simulate fetching user registrations
     if (user?.uid) {
-      setMyRegistrations([
-        {
-          id: "1",
-          election_id: "1",
-          election_title: "2024 Student Union Elections",
-          registered_at: "2024-03-15T10:30:00Z",
-          status: "approved",
-        },
-        {
-          id: "2",
-          election_id: "2",
-          election_title: "Faculty Representative Council",
-          registered_at: "2024-03-10T14:20:00Z",
-          status: "pending",
-        },
-      ]);
+      fetchMyRegistrations();
     }
   }, [user]);
+
+  const fetchMyRegistrations = async () => {
+  try {
+    setLoading(true);
+    
+    // Simple query - no filters
+    const { data: registrationsData, error } = await supabase
+      .from("voter_registrations")
+      .select("*")
+      .order("registered_at", { ascending: false });
+
+    if (error) throw error;
+
+    // Filter client-side
+    const myRegs = registrationsData?.filter(reg => reg.user_id === user?.uid) || [];
+    
+    // Add election details
+    const registrationsWithDetails = myRegs.map((reg) => {
+      const election = elections.find(e => e.id === reg.election_id);
+      return {
+        ...reg,
+        election_title: election?.title || "Unknown Election",
+      };
+    });
+
+    setMyRegistrations(registrationsWithDetails);
+  } catch (error) {
+    console.error("Error:", error);
+    setMyRegistrations([]);
+  } finally {
+    setLoading(false);
+  }
+};
 
   // Filter elections
   const now = new Date();
@@ -135,25 +175,74 @@ const VotesRegistrationPage: React.FC = () => {
     setIsRegistering(false);
   };
 
-  const handleConfirmRegistration = () => {
-    setIsRegistering(true);
-    // Simulate API call
-    setTimeout(() => {
-      // Add to registrations
-      if (selectedElection) {
-        const newRegistration: Registration = {
-          id: Date.now().toString(),
-          election_id: selectedElection.id,
-          election_title: selectedElection.title,
-          registered_at: new Date().toISOString(),
-          status: "pending",
-        };
-        setMyRegistrations([newRegistration, ...myRegistrations]);
-      }
-      setIsRegistering(false);
-      setRegistrationStep('review');
-    }, 1500);
-  };
+  const handleConfirmRegistration = async () => {
+  if (!selectedElection || !user) {
+    alert("Please log in to register for elections.");
+    return;
+  }
+
+  setIsRegistering(true);
+  
+  try {
+    // Check authentication status
+    const { data: { session } } = await supabase.auth.getSession();
+    console.log("Current session:", session); // Check this in console
+    
+    if (!session) {
+      alert("Your session has expired. Please log in again.");
+      return;
+    }
+
+    // Simple insert without checking duplicates first
+    const registrationData = {
+      election_id: selectedElection.id,
+      user_id: user.uid,
+      voter_name: user.fullName || "",
+      voter_email: user.email || "",
+      voter_phone: user.phone || "",
+      voter_department: user.department || "",
+      voter_level: user.level || "100",
+      student_id: user.memberId || "",
+      organization: user.organization || "",
+      status: "pending",
+    };
+
+    console.log("Inserting:", registrationData);
+
+    const { data, error } = await supabase
+      .from("voter_registrations")
+      .insert([registrationData])
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Insert error:", error);
+      throw error;
+    }
+
+    // Update state
+    const newRegistration: VoterRegistrationWithDetails = {
+      ...data,
+      election_title: selectedElection.title,
+      election_description: selectedElection.description,
+      election_organization: selectedElection.organization,
+      voting_start_date: selectedElection.voting_start_date,
+      voting_end_date: selectedElection.voting_end_date,
+      registration_start_date: selectedElection.registration_start_date,
+      registration_end_date: selectedElection.registration_end_date,
+    };
+
+    setMyRegistrations([newRegistration, ...myRegistrations]);
+    setRegistrationStep('review');
+    
+  } catch (error) {
+    console.error("Full error:", error);
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+    alert(`Failed to register for election: ${errorMessage}`);
+  } finally {
+    setIsRegistering(false);
+  }
+};
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -186,7 +275,9 @@ const VotesRegistrationPage: React.FC = () => {
     return registration?.status;
   };
 
-  if (electionsLoading) {
+  const approvedRegistrationsCount = myRegistrations.filter(r => r.status === 'approved').length;
+
+  if (electionsLoading || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -236,7 +327,7 @@ const VotesRegistrationPage: React.FC = () => {
                   <div className="flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-gradient-to-r from-emerald-100 to-green-100 dark:from-emerald-900/30 dark:to-green-900/30">
                     <CheckCircle2 className="w-3 h-3 sm:w-4 sm:h-4 text-emerald-600 dark:text-emerald-400" />
                     <span className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
-                      {myRegistrations.filter(r => r.status === 'approved').length} Registered
+                      {approvedRegistrationsCount} Registered
                     </span>
                   </div>
                 </div>
@@ -302,8 +393,11 @@ const VotesRegistrationPage: React.FC = () => {
                               )}
                             </div>
                             <h3 className="font-bold text-gray-900 dark:text-white text-sm sm:text-base mb-1 line-clamp-2">
-                              {reg.election_title}
+                              {reg.election_title || "Election"}
                             </h3>
+                            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 truncate">
+                              {reg.organization}
+                            </p>
                           </div>
                           <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30 flex items-center justify-center flex-shrink-0">
                             <Vote className="w-4 h-4 sm:w-5 sm:h-5 text-green-600 dark:text-green-400" />
@@ -315,13 +409,6 @@ const VotesRegistrationPage: React.FC = () => {
                             <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
                             <span>Registered {registeredDate.toLocaleDateString()}</span>
                           </div>
-                          {reg.status === "rejected" && reg.rejection_reason && (
-                            <div className="p-2 sm:p-3 rounded-lg bg-gradient-to-r from-rose-50 to-red-50 dark:from-rose-900/20 dark:to-red-900/20">
-                              <p className="text-xs font-medium text-rose-700 dark:text-rose-400 line-clamp-2">
-                                Reason: {reg.rejection_reason}
-                              </p>
-                            </div>
-                          )}
                           {reg.status === "pending" && (
                             <div className="flex items-center gap-1.5 sm:gap-2 text-sm">
                               <div className="flex-1 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
@@ -330,6 +417,12 @@ const VotesRegistrationPage: React.FC = () => {
                               <span className="text-xs text-amber-600 dark:text-amber-400 font-medium">
                                 Under Review
                               </span>
+                            </div>
+                          )}
+                          {reg.status === "approved" && reg.voting_start_date && (
+                            <div className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-emerald-600 dark:text-emerald-400">
+                              <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
+                              <span>Voting starts {new Date(reg.voting_start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
                             </div>
                           )}
                         </div>
@@ -828,6 +921,8 @@ const VotesRegistrationPage: React.FC = () => {
                         { icon: Mail, label: "Email", value: user?.email },
                         { icon: GraduationCap, label: "Department", value: user?.department },
                         { icon: Building, label: "Organization", value: user?.organization },
+                        { icon: FileText, label: "Student ID", value: user?.memberId },
+                        { icon: Phone, label: "Phone", value: user?.phone },
                       ].map((item, index) => (
                         <div key={index} className="flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 rounded-lg sm:rounded-xl bg-white/50 dark:bg-slate-800/50">
                           <div className="p-1.5 sm:p-2 rounded-lg bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30">
@@ -971,7 +1066,10 @@ const VotesRegistrationPage: React.FC = () => {
                 {/* Action Buttons */}
                 <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4 sm:pt-6 border-t border-slate-200 dark:border-slate-800">
                   <button
-                    onClick={handleCloseRegistration}
+                    onClick={() => {
+                      handleCloseRegistration();
+                      fetchMyRegistrations();
+                    }}
                     className="flex-1 px-4 sm:px-6 py-3 sm:py-4 border-2 border-slate-300 dark:border-slate-700 text-gray-700 dark:text-gray-300 rounded-lg sm:rounded-xl font-bold hover:bg-slate-50 dark:hover:bg-slate-800 transition-all text-sm sm:text-base"
                   >
                     View My Registrations

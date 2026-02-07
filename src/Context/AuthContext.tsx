@@ -15,6 +15,8 @@ interface User {
   department?: string;            // Optional department
   position?: string;              // Optional position (for admins)
   selfieUrl?: string;             // Profile picture URL
+  phone?: string;                 // Optional phone number
+  level?: string;                 // Optional level (e.g., academic level)
   createdAt: Date;                // When they registered
 }
 
